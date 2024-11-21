@@ -48,6 +48,7 @@ buildable_pkgs <- function(build_sched) {
 #' @return An updated version of the build schedule.
 set_built_pkgs <- function(build_sched, pkgs) {
   cs <- build_sched$counts
+  cs[pkgs] <- -1
   for (p in pkgs) {
     rds <- build_sched$rdeps[[p]]
     cs[rds] <- cs[rds] - 1

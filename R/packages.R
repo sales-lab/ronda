@@ -87,3 +87,12 @@ pkg_deps <- function(pkg_info, pkg) {
 
   pkg_info$deps[[pkg]]
 }
+
+#' List package repositories.
+#'
+#' @param pkg_info A `pkg_info` object.
+#' @param pkg A vector of package names.
+#' @return A vector of repositories corresponding to the provided packages.
+pkg_repos <- function(pkg_info, pkg) {
+  pkg_info$pkgs[pkg, "Repository"]
+}

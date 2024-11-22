@@ -1,8 +1,16 @@
 #' Retrieve package information for all packages on CRAN and Bioconductor.
 #'
-#' @return A matrix, as returned by [available.packages()].
+#' @return A `pkg_info` object.
 #' @export
 all_package_info <- function() {
+  pkgs <- list_packages()
+  deps <- tools::package_dependencies(rownames(pkgs), db = pkgs)
+  builtins <- tools::standard_package_names()
+  structure(list(pkgs = pkgs, deps = deps, builtins = builtins$base),
+            class = "pkg_info")
+}
+
+list_packages <- function() {
   ap <- purrr::map(
     c(getOption("repos"), BiocManager::repositories()["BioCsoft"]),
     \(r) utils::available.packages(repos = r)
@@ -10,19 +18,11 @@ all_package_info <- function() {
   do.call(rbind, ap)
 }
 
-#' Retrieve dependency information for all packages available on CRAN and on
-#' Bioconductor.
+#' Print function for `pkg_info` objects.
 #'
-#' @param pkg_info Package information retrieved by [all_package_info()].
-#' @return A named list representing all dependencies of each package.
+#' @param x A `pkg_info` object.
+#' @param ... Other arguments, ignored.
 #' @export
-all_package_deps <- function(pkg_info) {
-  deps <- tools::package_dependencies(rownames(pkg_info), db = pkg_info)
-  builtins <- unlist(tools::standard_package_names())
-  drop_builtins(deps, builtins)
-}
-
-drop_builtins <- function(deps, builtins) {
-  ns <- setdiff(names(deps), builtins)
-  purrr::map(deps[ns], \(ps) setdiff(ps, builtins))
+print.pkg_info <- function(x, ...) {
+  cat("pkg_info for", nrow(x$pkgs), "packages.\n")
 }

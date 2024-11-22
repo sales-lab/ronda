@@ -7,7 +7,7 @@
 all_package_info()
 }
 \value{
-A matrix, as returned by \code{\link[=available.packages]{available.packages()}}.
+A \code{pkg_info} object.
 }
 \description{
 Retrieve package information for all packages on CRAN and Bioconductor.

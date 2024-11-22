@@ -9,8 +9,9 @@
 #' @export
 conda_build <- function(pkg, pkg_info) {
   build_dir <- create_build_dir(pkg)
-  create_recipe(pkg, pkg_info, build_dir)
-  run_build(build_dir)
+  recipe <- create_recipe(pkg, pkg_info, build_dir)
+  run_build(build_dir, recipe)
+  return(pkg)
 }
 
 create_build_dir <- function(pkg) {
@@ -43,6 +44,8 @@ create_recipe <- function(pkg, pkg_info, dir) {
 
   content <- glue::glue(recipe_template)
   writeLines(content, fs::path_join(c(dir, "meta.yaml")))
+
+  content
 }
 
 qualified_names <- function(pkgs, pkg_info) {
@@ -97,16 +100,22 @@ compiler_spec <- "
 "
 
 #' @importFrom cli cli_abort
-run_build <- function(dir) {
+run_build <- function(dir, recipe) {
   pkg <- fs::path_file(dir)
   parent <- fs::path_dir(dir)
+
+  log_file <- paste0(pkg, ".log")
   res <- processx::run(
     "conda", c("build", "--R", r_version(), pkg),
     error_on_status = FALSE, wd = parent, stderr_to_stdout = TRUE,
-    stdout = paste0(pkg, ".log")
+    stdout = log_file
   )
 
   if (res$status != 0) {
+    log <- file(log_file, open = "at")
+    writeLines(c("", "==> Recipe", recipe), log)
+    close(log)
+
     cli_abort(c(
       "x" = "Build failed.",
       "i" = "There was an error building the {pkg} package."

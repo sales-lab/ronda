@@ -16,7 +16,9 @@ all_package_info <- function() {
 
 list_packages <- function() {
   ap <- purrr::map(
-    unique(c(getOption("repos"), BiocManager::repositories())),
+    suppressMessages(
+      unique(c(getOption("repos"), BiocManager::repositories()))
+    ),
     \(r) utils::available.packages(repos = r)
   )
   do.call(rbind, ap)

@@ -32,6 +32,8 @@ create_recipe <- function(pkg, pkg_info, dir) {
   md5 <- info[["MD5sum"]]
   license <- info[["License"]]
 
+  compiler <- if (info[["NeedsCompilation"]] == "yes") compiler_spec else ""
+
   deps <-
     pkg_deps(pkg_info, pkg) |>
     qualified_names(pkg_info) |>
@@ -67,11 +69,10 @@ build:
 
 requirements:
   build:
-    - cross-r-base {{{{ r_base }}}}  # [build_platform != target_platform]
-    - autoconf  # [unix]
-    - \"{{{{ compiler('c') }}}}\"  # [unix]
-    - \"{{{{ compiler('cxx') }}}}\"  # [unix]
-    - posix  # [win]
+{compiler}
+{deps}
+  host:
+    - r-base
 {deps}
   run:
     - r-base
@@ -84,6 +85,14 @@ about:
 extra:
   recipe-maintainers:
     - gbrsales
+"
+
+compiler_spec <- "
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - autoconf  # [unix]
+    - \"{{ compiler('c') }}\"  # [unix]
+    - \"{{ compiler('cxx') }}\"  # [unix]
+    - posix  # [win]
 "
 
 #' @importFrom cli cli_abort

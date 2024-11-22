@@ -4,7 +4,7 @@
 #' @importFrom cli cli_progress_step
 #' @export
 demo_build <- function() {
-  pis <- all_package_info() |> subset("graphite")
+  pis <- all_package_info() |> subset("tidyverse")
 
   bs <- build_schedule(pis)
   repeat {

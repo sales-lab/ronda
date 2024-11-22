@@ -28,6 +28,7 @@ create_recipe <- function(pkg, pkg_info, dir) {
 
   repo <- info[["Repository"]]
   version <- info[["Version"]]
+  version_safe <- sub("-", ".", version, fixed = TRUE)
   url <- glue::glue("{repo}/{pkg}_{version}.tar.gz")
   md5 <- info[["MD5sum"]]
   license <- info[["License"]]
@@ -53,7 +54,7 @@ qualified_names <- function(pkgs, pkg_info) {
 recipe_template <- "
 package:
   name: '{qname}'
-  version: '{version}'
+  version: '{version_safe}'
 
 source:
   url: '{url}'

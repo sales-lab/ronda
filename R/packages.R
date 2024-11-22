@@ -67,3 +67,19 @@ names.pkg_info <- function(x) {
   rownames(x$pkgs)
 }
 
+#' Retrieve the dependencies of a package.
+#'
+#' @param pkg_info A `pkg_info` object.
+#' @param pkg A length-one vector containing  a package name.
+#' @return A vector of dependency names.
+#'
+#' @importFrom cli cli_abort
+pkg_deps <- function(pkg_info, pkg) {
+  if (!is.character(pkg)) {
+    cli_abort("`pkg` should be a character vector.")
+  } else if (length(pkg) != 1) {
+    cli_abort("`pkg` should contain a single entry.")
+  }
+
+  pkg_info$deps[[pkg]]
+}

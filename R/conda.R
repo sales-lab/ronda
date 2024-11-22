@@ -99,8 +99,11 @@ compiler_spec <- "
 run_build <- function(dir) {
   pkg <- fs::path_file(dir)
   parent <- fs::path_dir(dir)
-  res <- processx::run("conda", c("build", "--R", r_version(), pkg),
-                       error_on_status = FALSE, wd = parent, echo = TRUE)
+  res <- processx::run(
+    "conda", c("build", "--R", r_version(), pkg),
+    error_on_status = FALSE, wd = parent, stderr_to_stdout = TRUE,
+    stdout = paste0(pkg, ".log")
+  )
 
   if (res$status != 0) {
     cli_abort(c(

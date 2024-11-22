@@ -4,13 +4,13 @@
 \alias{build_schedule}
 \title{Computes a build schedule respecting inter-package dependencies.}
 \usage{
-build_schedule(deps)
+build_schedule(pkg_info)
 }
 \arguments{
-\item{deps}{A list representing packages dependencies.}
+\item{pkg_info}{Packages to build.}
 }
 \value{
-Vector of packages names in build order.
+A \code{build_sched} object.
 }
 \description{
 Computes a build schedule respecting inter-package dependencies.

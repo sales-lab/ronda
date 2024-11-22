@@ -16,5 +16,4 @@ Imports:
     cli,
     purrr,
     tools,
-    toposort,
     utils

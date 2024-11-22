@@ -26,3 +26,34 @@ list_packages <- function() {
 print.pkg_info <- function(x, ...) {
   cat("pkg_info for", nrow(x$pkgs), "packages.\n")
 }
+
+#' Subset package information, keeping track of all required dependencies.
+#'
+#' @param x A `pkg_info` object.
+#' @param subset A vector of package names to be selected.
+#' @param ... Other arguments, ignored.
+#' @return Another pkg_info, including required packages and their dependencies.
+#' @export
+subset.pkg_info <- function(x, subset, ...) {
+  queue <- subset
+  ns <- subset
+
+  while (length(queue) > 0) {
+    wset <- queue
+    queue <- character()
+
+    for (p in wset) {
+      ds <- x$deps[[p]]
+      ds <- setdiff(ds, x$builtins)
+      ds <- setdiff(ds, ns)
+      queue <- c(queue, ds)
+      ns <- c(ns, ds)
+    }
+  }
+
+  structure(
+    list(pkgs = x$pkgs[ns, , drop = FALSE],
+         deps = x$deps[ns],
+         builtins = x$builtins),
+    class = "pkg_info")
+}

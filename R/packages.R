@@ -4,10 +4,14 @@
 #' @export
 all_package_info <- function() {
   pkgs <- list_packages()
-  deps <- tools::package_dependencies(rownames(pkgs), db = pkgs)
-  builtins <- tools::standard_package_names()
-  structure(list(pkgs = pkgs, deps = deps, builtins = builtins$base),
-            class = "pkg_info")
+  builtins <- tools::standard_package_names()$base
+  stopifnot(!any(rownames(pkgs) %in% builtins))
+
+  deps <-
+    tools::package_dependencies(rownames(pkgs), db = pkgs) |>
+    purrr::map(\(ds) ds[!ds %in% builtins])
+
+  structure(list(pkgs = pkgs, deps = deps), class = "pkg_info")
 }
 
 list_packages <- function() {

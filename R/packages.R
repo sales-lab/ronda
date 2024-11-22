@@ -12,7 +12,7 @@ all_package_info <- function() {
 
 list_packages <- function() {
   ap <- purrr::map(
-    c(getOption("repos"), BiocManager::repositories()["BioCsoft"]),
+    unique(c(getOption("repos"), BiocManager::repositories())),
     \(r) utils::available.packages(repos = r)
   )
   do.call(rbind, ap)

@@ -57,3 +57,13 @@ subset.pkg_info <- function(x, subset, ...) {
          builtins = x$builtins),
     class = "pkg_info")
 }
+
+#' Extract package names.
+#'
+#' @param x A `pkg_info` object.
+#' @return A vector of package names.
+#' @export
+names.pkg_info <- function(x) {
+  rownames(x$pkgs)
+}
+

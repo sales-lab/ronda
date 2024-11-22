@@ -16,6 +16,7 @@ Imports:
     cli,
     fs,
     glue,
+    pkgdepends,
     processx,
     purrr,
     tools,

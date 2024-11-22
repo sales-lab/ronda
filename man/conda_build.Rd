@@ -12,6 +12,6 @@ conda_build(pkg, pkg_info)
 \item{pkg_info}{A \code{pkg_info} object.}
 }
 \description{
-This function works on the assumption tha all dependencies are already
+This function works on the assumption that all dependencies are already
 available.
 }

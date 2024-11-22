@@ -1,6 +1,6 @@
 #' Build an R package with Conda.
 #'
-#' This function works on the assumption tha all dependencies are already
+#' This function works on the assumption that all dependencies are already
 #' available.
 #'
 #' @param pkg Package name.
@@ -9,7 +9,8 @@
 #' @export
 conda_build <- function(pkg, pkg_info) {
   build_dir <- create_build_dir(pkg)
-  recipe <- create_recipe(pkg, pkg_info, build_dir)
+  sysdeps <- lookup_sysdeps(pkg)
+  recipe <- create_recipe(pkg, pkg_info, sysdeps, build_dir)
   run_build(build_dir, recipe)
   return(pkg)
 }
@@ -21,7 +22,7 @@ create_build_dir <- function(pkg) {
   dir
 }
 
-create_recipe <- function(pkg, pkg_info, dir) {
+create_recipe <- function(pkg, pkg_info, sysdeps, dir) {
   qname <- qualified_names(pkg, pkg_info)
 
   # TODO: build an helper for this?
@@ -39,6 +40,7 @@ create_recipe <- function(pkg, pkg_info, dir) {
   deps <-
     pkg_deps(pkg_info, pkg) |>
     qualified_names(pkg_info) |>
+    append(x = _, sysdeps) |>
     purrr::map_chr(\(p) paste0("    - ", p)) |>
     paste(collapse = "\n")
 

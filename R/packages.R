@@ -99,6 +99,15 @@ pkg_repos <- function(tree, pkg) {
   tree$pkgs[pkg, "Repository"]
 }
 
+#' List package versions.
+#'
+#' @param tree A `pkg_tree` object.
+#' @param pkg A vector of package names.
+#' @return A vector of package versions.
+pkg_versions <- function(tree, pkg) {
+  tree$pkgs[pkg, "Version"]
+}
+
 #' Retrieve package information.
 #'
 #' @param tree A `pkg_tree` object.

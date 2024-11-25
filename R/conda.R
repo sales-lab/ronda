@@ -29,16 +29,19 @@ create_recipe <- function(pkg, tree, sysdeps, dir) {
 
   repo <- info$Repository
   version <- info$Version
-  version_safe <- sub("-", ".", version, fixed = TRUE)
+  version_safe <- sanitize_version(version)
   url <- glue::glue("{repo}/{pkg}_{version}.tar.gz")
   md5 <- info$MD5sum
   license <- info$License
 
   compiler <- if (info$NeedsCompilation == "yes") compiler_spec else ""
 
+  r_deps <- pkg_deps(tree, pkg)
+  r_vers <- pkg_versions(tree, r_deps)
+
   deps <-
-    pkg_deps(tree, pkg) |>
-    qualified_names(tree) |>
+    paste(qualified_names(r_deps, tree), sanitize_version(r_vers),
+          sep = " >=") |>
     append(x = _, sysdeps) |>
     purrr::map_chr(\(p) paste0("    - ", p)) |>
     paste(collapse = "\n")
@@ -47,6 +50,10 @@ create_recipe <- function(pkg, tree, sysdeps, dir) {
   writeLines(content, fs::path_join(c(dir, "meta.yaml")))
 
   content
+}
+
+sanitize_version <- function(version) {
+  sub("-", ".", version, fixed = TRUE)
 }
 
 qualified_names <- function(pkgs, tree) {

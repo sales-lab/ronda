@@ -4,10 +4,10 @@
 \alias{pkg_repos}
 \title{List package repositories.}
 \usage{
-pkg_repos(pkg_info, pkg)
+pkg_repos(tree, pkg)
 }
 \arguments{
-\item{pkg_info}{A \code{pkg_info} object.}
+\item{tree}{A \code{pkg_tree} object.}
 
 \item{pkg}{A vector of package names.}
 }

@@ -4,9 +4,9 @@
 #' @importFrom cli cli_progress_step
 #' @export
 demo_build <- function() {
-  pis <- all_package_info() |> subset("tidyverse")
+  tree <- all_packages() |> subset("tidyverse")
 
-  bs <- build_schedule(pis)
+  bs <- build_schedule(tree)
   repeat {
     pkgs <- buildable_pkgs(bs)
     if (length(pkgs) == 0) {
@@ -18,7 +18,7 @@ demo_build <- function() {
         paste0("Building ", p),
         msg_done = paste0("Built ", p)
       )
-      conda_build(p, pis)
+      conda_build(p, tree)
     }
 
     bs <- set_built_pkgs(bs, pkgs)

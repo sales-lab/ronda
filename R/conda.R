@@ -4,13 +4,13 @@
 #' available.
 #'
 #' @param pkg Package name.
-#' @param pkg_info A `pkg_info` object.
+#' @param tree A `pkg_tree` object.
 #'
 #' @export
-conda_build <- function(pkg, pkg_info) {
+conda_build <- function(pkg, tree) {
   build_dir <- create_build_dir(pkg)
   sysdeps <- lookup_sysdeps(pkg)
-  recipe <- create_recipe(pkg, pkg_info, sysdeps, build_dir)
+  recipe <- create_recipe(pkg, tree, sysdeps, build_dir)
   run_build(build_dir, recipe)
   return(pkg)
 }
@@ -22,24 +22,23 @@ create_build_dir <- function(pkg) {
   dir
 }
 
-create_recipe <- function(pkg, pkg_info, sysdeps, dir) {
-  qname <- qualified_names(pkg, pkg_info)
+create_recipe <- function(pkg, tree, sysdeps, dir) {
+  qname <- qualified_names(pkg, tree)
 
-  # TODO: build an helper for this?
-  info <- pkg_info$pkgs[pkg, ]
+  info <- pkg_info(tree, pkg)
 
-  repo <- info[["Repository"]]
-  version <- info[["Version"]]
+  repo <- info$Repository
+  version <- info$Version
   version_safe <- sub("-", ".", version, fixed = TRUE)
   url <- glue::glue("{repo}/{pkg}_{version}.tar.gz")
-  md5 <- info[["MD5sum"]]
-  license <- info[["License"]]
+  md5 <- info$MD5sum
+  license <- info$License
 
-  compiler <- if (info[["NeedsCompilation"]] == "yes") compiler_spec else ""
+  compiler <- if (info$NeedsCompilation == "yes") compiler_spec else ""
 
   deps <-
-    pkg_deps(pkg_info, pkg) |>
-    qualified_names(pkg_info) |>
+    pkg_deps(tree, pkg) |>
+    qualified_names(tree) |>
     append(x = _, sysdeps) |>
     purrr::map_chr(\(p) paste0("    - ", p)) |>
     paste(collapse = "\n")
@@ -50,8 +49,8 @@ create_recipe <- function(pkg, pkg_info, sysdeps, dir) {
   content
 }
 
-qualified_names <- function(pkgs, pkg_info) {
-  repos <- pkg_repos(pkg_info, pkgs)
+qualified_names <- function(pkgs, tree) {
+  repos <- pkg_repos(tree, pkgs)
   prefixes <- ifelse(grepl("bioconductor", repos), "bioconductor", "r")
   paste(prefixes, tolower(pkgs), sep = "-")
 }

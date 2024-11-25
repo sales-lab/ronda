@@ -4,12 +4,12 @@
 \alias{conda_build}
 \title{Build an R package with Conda.}
 \usage{
-conda_build(pkg, pkg_info)
+conda_build(pkg, tree)
 }
 \arguments{
 \item{pkg}{Package name.}
 
-\item{pkg_info}{A \code{pkg_info} object.}
+\item{tree}{A \code{pkg_tree} object.}
 }
 \description{
 This function works on the assumption that all dependencies are already

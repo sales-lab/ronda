@@ -1,10 +1,10 @@
 #' Computes a build schedule respecting inter-package dependencies.
 #'
-#' @param pkg_info Packages to build.
+#' @param tree Packages to build.
 #' @return A `build_sched` object.
 #' @export
-build_schedule <- function(pkg_info) {
-  pkgs <- names(pkg_info)
+build_schedule <- function(tree) {
+  pkgs <- names(tree)
 
   counts <- rep.int(0, length(pkgs))
   names(counts) <- pkgs
@@ -12,7 +12,7 @@ build_schedule <- function(pkg_info) {
   rdeps <- list()
 
   for (p in pkgs) {
-    ds <- pkg_deps(pkg_info, p)
+    ds <- pkg_deps(tree, p)
 
     counts[p] <- length(ds)
     for (d in ds) {

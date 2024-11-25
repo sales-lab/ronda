@@ -1,8 +1,8 @@
-#' Retrieve package information for all packages on CRAN and Bioconductor.
+#' Build a package tree including all packages on CRAN and Bioconductor.
 #'
-#' @return A `pkg_info` object.
+#' @return A `pkg_tree` object.
 #' @export
-all_package_info <- function() {
+all_packages <- function() {
   pkgs <- list_packages()
   builtins <- tools::standard_package_names()$base
   stopifnot(!any(rownames(pkgs) %in% builtins))
@@ -11,7 +11,7 @@ all_package_info <- function() {
     tools::package_dependencies(rownames(pkgs), db = pkgs) |>
     purrr::map(\(ds) ds[!ds %in% builtins])
 
-  structure(list(pkgs = pkgs, deps = deps), class = "pkg_info")
+  structure(list(pkgs = pkgs, deps = deps), class = "pkg_tree")
 }
 
 list_packages <- function() {
@@ -24,23 +24,24 @@ list_packages <- function() {
   do.call(rbind, ap)
 }
 
-#' Print function for `pkg_info` objects.
+#' Print function for `pkg_tree` objects.
 #'
-#' @param x A `pkg_info` object.
+#' @param x A `pkg_tree` object.
 #' @param ... Other arguments, ignored.
 #' @export
-print.pkg_info <- function(x, ...) {
-  cat("pkg_info for", nrow(x$pkgs), "packages.\n")
+print.pkg_tree <- function(x, ...) {
+  cat("Package tree including ", nrow(x$pkgs), "packages.\n")
 }
 
-#' Subset package information, keeping track of all required dependencies.
+#' Subset a package tree, keeping track of all required dependencies.
 #'
-#' @param x A `pkg_info` object.
+#' @param x A `pkg_tree` object.
 #' @param subset A vector of package names to be selected.
 #' @param ... Other arguments, ignored.
-#' @return Another pkg_info, including required packages and their dependencies.
+#' @return Another `pkg_tree`, including required packages and their
+#'     dependencies.
 #' @export
-subset.pkg_info <- function(x, subset, ...) {
+subset.pkg_tree <- function(x, subset, ...) {
   queue <- subset
   ns <- subset
 
@@ -58,43 +59,51 @@ subset.pkg_info <- function(x, subset, ...) {
   }
 
   structure(
-    list(pkgs = x$pkgs[ns, , drop = FALSE],
-         deps = x$deps[ns],
-         builtins = x$builtins),
-    class = "pkg_info")
+    list(pkgs = x$pkgs[ns, , drop = FALSE], deps = x$deps[ns]),
+    class = "pkg_tree"
+  )
 }
 
 #' Extract package names.
 #'
-#' @param x A `pkg_info` object.
+#' @param x A `pkg_tree` object.
 #' @return A vector of package names.
 #' @export
-names.pkg_info <- function(x) {
+names.pkg_tree <- function(x) {
   rownames(x$pkgs)
 }
 
 #' Retrieve the dependencies of a package.
 #'
-#' @param pkg_info A `pkg_info` object.
-#' @param pkg A length-one vector containing  a package name.
+#' @param tree A `pkg_tree` object.
+#' @param pkg A length-one vector containing a package name.
 #' @return A vector of dependency names.
 #'
 #' @importFrom cli cli_abort
-pkg_deps <- function(pkg_info, pkg) {
+pkg_deps <- function(tree, pkg) {
   if (!is.character(pkg)) {
     cli_abort("`pkg` should be a character vector.")
   } else if (length(pkg) != 1) {
     cli_abort("`pkg` should contain a single entry.")
   }
 
-  pkg_info$deps[[pkg]]
+  tree$deps[[pkg]]
 }
 
 #' List package repositories.
 #'
-#' @param pkg_info A `pkg_info` object.
+#' @param tree A `pkg_tree` object.
 #' @param pkg A vector of package names.
 #' @return A vector of repositories corresponding to the provided packages.
-pkg_repos <- function(pkg_info, pkg) {
-  pkg_info$pkgs[pkg, "Repository"]
+pkg_repos <- function(tree, pkg) {
+  tree$pkgs[pkg, "Repository"]
+}
+
+#' Retrieve package information.
+#'
+#' @param tree A `pkg_tree` object.
+#' @param pkg A length-one vector containing a package name.
+#' @return A list including all available package information.
+pkg_info <- function(tree, pkg) {
+  as.list(tree$pkgs[pkg, , drop = TRUE])
 }

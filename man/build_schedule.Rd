@@ -4,10 +4,10 @@
 \alias{build_schedule}
 \title{Computes a build schedule respecting inter-package dependencies.}
 \usage{
-build_schedule(pkg_info)
+build_schedule(tree)
 }
 \arguments{
-\item{pkg_info}{Packages to build.}
+\item{tree}{Packages to build.}
 }
 \value{
 A \code{build_sched} object.

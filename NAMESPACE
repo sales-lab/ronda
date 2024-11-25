@@ -2,6 +2,7 @@
 
 S3method(names,pkg_tree)
 S3method(print,build_sched)
+S3method(print,conda_channel)
 S3method(print,pkg_tree)
 S3method(subset,pkg_tree)
 export(all_packages)

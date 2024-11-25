@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Gabriele Sales
+# MIT License
+
+
 #' Run a demonstration of the system, building the graphite package and its
 #' dependencies.
 #'

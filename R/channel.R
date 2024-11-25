@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Gabriele Sales
+# MIT License
+
+
 #' Read the manifest of a Conda channel.
 #'
 #' @param path Root directory of the channel

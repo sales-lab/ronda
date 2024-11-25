@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Gabriele Sales
+# MIT License
+
+
 #' Lookup the system dependencies of a package.
 #'
 #' @param pkg A vector of package names.

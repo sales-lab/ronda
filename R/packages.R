@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Gabriele Sales
+# MIT License
+
+
 #' Build a package tree including all packages on CRAN and Bioconductor.
 #'
 #' @return A `pkg_tree` object.

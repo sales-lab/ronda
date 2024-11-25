@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Gabriele Sales
+# MIT License
+
+
 #' Computes a build schedule respecting inter-package dependencies.
 #'
 #' @param tree Packages to build.

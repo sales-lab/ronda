@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Gabriele Sales
+# MIT License
+
+
 #' Build an R package with Conda.
 #'
 #' This function works on the assumption that all dependencies are already

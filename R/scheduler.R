@@ -2,6 +2,7 @@
 #'
 #' @param tree Packages to build.
 #' @return A `build_sched` object.
+#'
 #' @export
 build_schedule <- function(tree) {
   pkgs <- names(tree)
@@ -27,6 +28,7 @@ build_schedule <- function(tree) {
 #'
 #' @param x A `build_sched` object.
 #' @param ... Other arguments, ignored.
+#'
 #' @export
 print.build_sched <- function(x, ...) {
   cat("Build schedule for", length(x$counts), "packages.\n")
@@ -36,6 +38,8 @@ print.build_sched <- function(x, ...) {
 #'
 #' @param build_sched A build schedule.
 #' @return A vector of package names.
+#'
+#' @export
 buildable_pkgs <- function(build_sched) {
   cs <- build_sched$counts
   names(cs)[cs == 0]
@@ -46,6 +50,8 @@ buildable_pkgs <- function(build_sched) {
 #' @param build_sched A build schedule.
 #' @param pkgs A vector of package names.
 #' @return An updated version of the build schedule.
+#'
+#' @export
 set_built_pkgs <- function(build_sched, pkgs) {
   cs <- build_sched$counts
   cs[pkgs] <- -1

@@ -2,6 +2,8 @@
 #'
 #' @param path Root directory of the channel
 #' @return A `conda_channel` object.
+#'
+#' @export
 conda_channel <- function(path) {
   manifest_path <- fs::path_join(c(path, "channeldata.json"))
   manifest <- jsonlite::read_json(manifest_path)
@@ -13,6 +15,7 @@ conda_channel <- function(path) {
 #'
 #' @param x A `conda_channel` object.
 #' @param ... Other arguments, ignored.
+#'
 #' @export
 print.conda_channel <- function(x, ...) {
   cat("Conda channel including", length(x$pkgs), "packages.\n")
@@ -23,6 +26,7 @@ print.conda_channel <- function(x, ...) {
 #' @return A `conda_channel` object.
 #'
 #' @importFrom cli cli_abort
+#' @export
 local_channel <- function() {
   prefix <- Sys.getenv("CONDA_PREFIX")
   if (!fs::is_dir(prefix)) {
@@ -47,6 +51,8 @@ local_channel <- function() {
 #'
 #' @param channel A `conda_channel` object.
 #' @return A data.frame with two columns: `package` name and `version`.
+#'
+#' @export
 channel_packages <- function(channel) {
   data.frame(package = names(channel$pkgs), version = channel$pkgs,
              row.names = NULL)

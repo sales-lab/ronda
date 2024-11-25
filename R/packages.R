@@ -1,6 +1,7 @@
 #' Build a package tree including all packages on CRAN and Bioconductor.
 #'
 #' @return A `pkg_tree` object.
+#'
 #' @export
 all_packages <- function() {
   pkgs <- list_packages()
@@ -28,6 +29,7 @@ list_packages <- function() {
 #'
 #' @param x A `pkg_tree` object.
 #' @param ... Other arguments, ignored.
+#'
 #' @export
 print.pkg_tree <- function(x, ...) {
   cat("Package tree including ", nrow(x$pkgs), "packages.\n")
@@ -40,6 +42,7 @@ print.pkg_tree <- function(x, ...) {
 #' @param ... Other arguments, ignored.
 #' @return Another `pkg_tree`, including required packages and their
 #'     dependencies.
+#'
 #' @export
 subset.pkg_tree <- function(x, subset, ...) {
   queue <- subset
@@ -68,6 +71,7 @@ subset.pkg_tree <- function(x, subset, ...) {
 #'
 #' @param x A `pkg_tree` object.
 #' @return A vector of package names.
+#'
 #' @export
 names.pkg_tree <- function(x) {
   rownames(x$pkgs)
@@ -80,6 +84,7 @@ names.pkg_tree <- function(x) {
 #' @return A vector of dependency names.
 #'
 #' @importFrom cli cli_abort
+#' @export
 pkg_deps <- function(tree, pkg) {
   if (!is.character(pkg)) {
     cli_abort("`pkg` should be a character vector.")
@@ -95,6 +100,8 @@ pkg_deps <- function(tree, pkg) {
 #' @param tree A `pkg_tree` object.
 #' @param pkg A vector of package names.
 #' @return A vector of repositories corresponding to the provided packages.
+#'
+#' @export
 pkg_repos <- function(tree, pkg) {
   tree$pkgs[pkg, "Repository"]
 }
@@ -104,6 +111,8 @@ pkg_repos <- function(tree, pkg) {
 #' @param tree A `pkg_tree` object.
 #' @param pkg A vector of package names.
 #' @return A vector of package versions.
+#'
+#' @export
 pkg_versions <- function(tree, pkg) {
   tree$pkgs[pkg, "Version"]
 }
@@ -113,6 +122,8 @@ pkg_versions <- function(tree, pkg) {
 #' @param tree A `pkg_tree` object.
 #' @param pkg A length-one vector containing a package name.
 #' @return A list including all available package information.
+#'
+#' @export
 pkg_info <- function(tree, pkg) {
   as.list(tree$pkgs[pkg, , drop = TRUE])
 }

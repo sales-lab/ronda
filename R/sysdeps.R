@@ -4,6 +4,7 @@
 #' @return A vector of system dependencies.
 #'
 #' @importFrom pkgdepends sysreqs_install_plan
+#' @export
 lookup_sysdeps <- function(pkg) {
   p <- sysreqs_install_plan(pkg)
   sr <- p$packages$sysreq

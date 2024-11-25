@@ -56,6 +56,11 @@ sanitize_version <- function(version) {
   sub("-", ".", version, fixed = TRUE)
 }
 
+#' Transform R package names in the format required by Conda.
+#'
+#' @param pkgs A vector of package names.
+#' @param tree A `pkg_tree` object.
+#' @return A vector of transformed package names.
 qualified_names <- function(pkgs, tree) {
   repos <- pkg_repos(tree, pkgs)
   prefixes <- ifelse(grepl("bioconductor", repos), "bioconductor", "r")

@@ -57,6 +57,10 @@ buildable_pkgs <- function(build_sched) {
 #'
 #' @export
 set_built_pkgs <- function(build_sched, pkgs) {
+  if (length(pkgs) == 0) {
+    return(build_sched)
+  }
+
   cs <- build_sched$counts
   cs[pkgs] <- -1
   for (p in pkgs) {

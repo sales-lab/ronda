@@ -39,6 +39,9 @@ ronda_build <- function(pkgs) {
 
 match_local_packages <- function(tree, channel) {
   local_pkgs <- channel_packages(channel)
+  if (nrow(local_pkgs) == 0) {
+    return(character())
+  }
 
   tree_names <- names(tree)
   qnames <- qualified_names(tree_names, tree)

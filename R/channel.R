@@ -42,13 +42,14 @@ local_channel <- function() {
 
   local_dir <- fs::path_join(c(prefix, "conda-bld"))
   if (!fs::is_dir(local_dir)) {
-    cli_abort(c(
-      "x" = "Missing directory for local Conda channel.",
-      "i" = "Expected path: {.path local_dir}"
-    ))
+    return(empty_channel())
   }
 
   conda_channel(local_dir)
+}
+
+empty_channel <- function() {
+  structure(list(pkgs = character()), class = "conda_channel")
 }
 
 #' List packages available from a channel.

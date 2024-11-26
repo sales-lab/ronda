@@ -2,17 +2,22 @@
 # MIT License
 
 
-#' Run a demonstration of the system, building the graphite package and its
-#' dependencies.
+#' Build a set of packages, including all of their dependencies.
+#'
+#' Packages already available in the local Conda channel are skipped.
+#'
+#' @param pkgs A vector of package names.
 #'
 #' @importFrom cli cli_progress_step
 #' @export
-demo_build <- function() {
-  tree <- all_packages() |> subset("tidyverse")
+ronda_build <- function(pkgs) {
+  tree <-
+    all_packages() |>
+    subset(pkgs)
 
-  local <- local_channel()
-  bs <- build_schedule(tree)
-  bs <- set_built_pkgs(bs, find_local_packages(tree, local))
+  bs <-
+    build_schedule(tree) |>
+    set_built_pkgs(match_local_packages(tree, local_channel()))
 
   repeat {
     pkgs <- buildable_pkgs(bs)
@@ -32,7 +37,7 @@ demo_build <- function() {
   }
 }
 
-find_local_packages <- function(tree, channel) {
+match_local_packages <- function(tree, channel) {
   local_pkgs <- channel_packages(channel)
 
   tree_names <- names(tree)

@@ -13,8 +13,8 @@
 #' @export
 conda_build <- function(pkg, tree) {
   build_dir <- create_build_dir(pkg)
-  sysdeps <- lookup_sysdeps(pkg)
-  recipe <- create_recipe(pkg, tree, sysdeps, build_dir)
+  custom <- lookup_custom(pkg)
+  recipe <- create_recipe(pkg, tree, custom, build_dir)
   run_build(build_dir, recipe)
   return(pkg)
 }
@@ -26,7 +26,7 @@ create_build_dir <- function(pkg) {
   dir
 }
 
-create_recipe <- function(pkg, tree, sysdeps, dir) {
+create_recipe <- function(pkg, tree, custom, dir) {
   qname <- qualified_names(pkg, tree)
 
   info <- pkg_info(tree, pkg)
@@ -45,16 +45,23 @@ create_recipe <- function(pkg, tree, sysdeps, dir) {
     compiler <- ""
     noarch <- "  noarch: generic"
   }
+  custom_compiler <- format_deps(custom$compiler)
 
   r_deps <- pkg_deps(tree, pkg)
   r_vers <- pkg_versions(tree, r_deps)
+  base_deps <- paste(qualified_names(r_deps, tree),
+                     sanitize_version(r_vers),
+                     sep = " >=")
 
-  deps <-
-    paste(qualified_names(r_deps, tree), sanitize_version(r_vers),
-          sep = " >=") |>
-    append(x = _, sysdeps) |>
-    purrr::map_chr(\(p) paste0("    - ", p)) |>
-    paste(collapse = "\n")
+  build_deps <- c(base_deps, custom$build_deps) |> format_deps()
+  run_deps <- c(base_deps, custom$run_deps) |> format_deps()
+
+  if (is.null(custom$script)) {
+    script <- "  script: R CMD INSTALL --build ."
+  } else {
+    script <- ""
+    writeLines(custom$script, fs::path_join(c(dir, "build.sh")))
+  }
 
   content <- glue::glue(recipe_template)
   writeLines(content, fs::path_join(c(dir, "meta.yaml")))
@@ -64,6 +71,11 @@ create_recipe <- function(pkg, tree, sysdeps, dir) {
 
 sanitize_version <- function(version) {
   sub("-", ".", version, fixed = TRUE)
+}
+
+format_deps <- function(deps) {
+  lines <- purrr::map_chr(deps,  \(x) paste0("    - ", x))
+  paste(lines, collapse = "\n")
 }
 
 #' Transform R package names in the format required by Conda.
@@ -90,7 +102,7 @@ build:
   number: 0
   merge_build_host: true
 {noarch}
-  script: R CMD INSTALL --build .
+{script}
   rpaths:
     - lib/R/lib/
     - lib/
@@ -98,13 +110,14 @@ build:
 requirements:
   build:
 {compiler}
-{deps}
+{custom_compiler}
+{build_deps}
   host:
     - r-base
-{deps}
+{build_deps}
   run:
     - r-base
-{deps}
+{run_deps}
 
 about:
   summary: Summary.
@@ -120,7 +133,6 @@ compiler_spec <- "
     - autoconf  # [unix]
     - \"{{ compiler('c') }}\"  # [unix]
     - \"{{ compiler('cxx') }}\"  # [unix]
-    - posix  # [win]
 "
 
 #' @importFrom cli cli_abort

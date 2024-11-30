@@ -129,10 +129,9 @@ extra:
 "
 
 compiler_spec <- "
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
-    - autoconf  # [unix]
-    - \"{{ compiler('c') }}\"  # [unix]
-    - \"{{ compiler('cxx') }}\"  # [unix]
+    - autoconf
+    - \"{{ compiler('c') }}\"
+    - \"{{ compiler('cxx') }}\"
 "
 
 #' @importFrom cli cli_abort

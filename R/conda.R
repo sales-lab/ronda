@@ -38,7 +38,13 @@ create_recipe <- function(pkg, tree, sysdeps, dir) {
   md5 <- info$MD5sum
   license <- info$License
 
-  compiler <- if (info$NeedsCompilation == "yes") compiler_spec else ""
+  if (info$NeedsCompilation == "yes") {
+    compiler <- compiler_spec
+    noarch <- ""
+  } else {
+    compiler <- ""
+    noarch <- "  noarch: generic"
+  }
 
   r_deps <- pkg_deps(tree, pkg)
   r_vers <- pkg_versions(tree, r_deps)
@@ -83,6 +89,7 @@ source:
 build:
   number: 0
   merge_build_host: true
+{noarch}
   script: R CMD INSTALL --build .
   rpaths:
     - lib/R/lib/

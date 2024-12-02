@@ -36,7 +36,10 @@ create_recipe <- function(pkg, tree, custom, dir) {
   version_safe <- sanitize_version(version)
   url <- glue::glue("{repo}/{pkg}_{version}.tar.gz")
   md5 <- info$MD5sum
-  license <- info$License
+  summary <- quote_string(info$Title)
+  description <- recipe_description(info$Description)
+  home <- quote_string(info$URL)
+  license <- quote_string(info$License)
 
   if (info$NeedsCompilation == "yes") {
     compiler <- compiler_spec
@@ -69,8 +72,20 @@ create_recipe <- function(pkg, tree, custom, dir) {
   content
 }
 
+#' @importFrom stringr str_replace_all fixed
 sanitize_version <- function(version) {
-  sub("-", ".", version, fixed = TRUE)
+  str_replace_all(version, fixed("-"), ".")
+}
+
+recipe_description <- function(descr) {
+  descr |>
+    purrr::map_chr(\(l) paste0("    ", l)) |>
+    paste(collapse = "\n")
+}
+
+#' @importFrom stringr str_length str_replace_all fixed
+quote_string <- function(value) {
+  str_replace_all(value, fixed("'"), "''")
 }
 
 format_deps <- function(deps) {
@@ -120,7 +135,10 @@ requirements:
 {run_deps}
 
 about:
-  summary: Summary.
+  summary: '{summary}'
+  description: |
+{description}
+  home: '{home}'
   license: '{license}'
 
 extra:

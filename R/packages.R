@@ -24,7 +24,7 @@ list_packages <- function() {
     suppressMessages(
       unique(c(getOption("repos"), BiocManager::repositories()))
     ),
-    \(r) utils::available.packages(repos = r)
+    \(r) utils::available.packages(repos = r, fields = "Description")
   )
   do.call(rbind, ap)
 }
@@ -129,5 +129,17 @@ pkg_versions <- function(tree, pkg) {
 #'
 #' @export
 pkg_info <- function(tree, pkg) {
-  as.list(tree$pkgs[pkg, , drop = TRUE])
+  l <- as.list(tree$pkgs[pkg, , drop = TRUE])
+
+  d <- utils::packageDescription(pkg)
+  l$Title <- d$Title
+  l$Description <- format_description(d$Description)
+  l$URL <- d$URL
+
+  l
+}
+
+format_description <- function(descr) {
+  lines <- unlist(strsplit(descr, "\n"))
+  sub("^\\s*", "", lines)
 }

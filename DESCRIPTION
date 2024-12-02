@@ -20,6 +20,7 @@ Imports:
     pkgdepends,
     processx,
     purrr,
+    stringr,
     tools,
     utils,
     withr

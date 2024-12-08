@@ -33,9 +33,14 @@ build_schedule <- function(tree) {
 #' @param x A `build_sched` object.
 #' @param ... Other arguments, ignored.
 #'
+#' @importFrom cli cli_text cli_ul cli_li cli_end
 #' @export
 print.build_sched <- function(x, ...) {
-  cat("Build schedule for", length(x$counts), "packages.\n")
+  cli_text(glue::glue("Build schedule for {length(x$counts)} packages."))
+  ul <- cli_ul()
+  cli_li(glue::glue("Already built: {sum(x$counts < 0)}"))
+  cli_li(glue::glue("Ready to build: {sum(x$counts == 0)}"))
+  cli_end(ul)
 }
 
 #' List packages that can be build now.
@@ -62,11 +67,37 @@ set_built_pkgs <- function(build_sched, pkgs) {
   }
 
   cs <- build_sched$counts
-  cs[pkgs] <- -1
-  for (p in pkgs) {
+  all_pkgs <- names(cs)
+
+  clean <- find_clean(build_sched, setdiff(all_pkgs, pkgs))
+  cs[clean] <- -1
+  for (p in clean) {
     rds <- build_sched$rdeps[[p]]
     cs[rds] <- cs[rds] - 1
   }
 
   structure(list(counts = cs, rdeps = build_sched$rdeps), class = "build_sched")
+}
+
+find_clean <- function(build_sched, dirty) {
+  mask <- rep(FALSE, length(build_sched$count))
+  names(mask) <- names(build_sched$count)
+  mask[dirty] <- TRUE
+
+  dirty_count <- sum(mask)
+  repeat {
+    ps <- names(mask[mask])
+    for (p in ps) {
+      rds <- build_sched$rdeps[[p]]
+      mask[rds] <- TRUE
+    }
+
+    s <- sum(mask)
+    if (s > dirty_count) {
+      dirty_count <- s
+    } else {
+      ps <- names(mask[!mask])
+      return(ps)
+    }
+  }
 }

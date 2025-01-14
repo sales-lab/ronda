@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Gabriele Sales
+# Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
 
@@ -7,22 +7,32 @@
 #' This function works on the assumption that all dependencies are already
 #' available.
 #'
+#' When `dry-run` is `TRUE`, the function generates the recipe file but does not
+#' initiate the build process. Instead, it returns the path to the temporary
+#' directory containing the recipe.
+#'
 #' @param pkg Package name.
 #' @param tree A `pkg_tree` object.
+#' @param dry_run Enable dry run when `TRUE`.
 #'
 #' @export
-conda_build <- function(pkg, tree) {
-  build_dir <- create_build_dir(pkg)
+conda_build <- function(pkg, tree, dry_run = FALSE) {
+  build_dir <- create_build_dir(pkg, dry_run)
   custom <- lookup_custom(pkg)
   recipe <- create_recipe(pkg, tree, custom, build_dir)
-  run_build(build_dir, recipe)
-  return(pkg)
+
+  if (dry_run) {
+    return(build_dir)
+  } else {
+    run_build(build_dir, recipe)
+    return(pkg)
+  }
 }
 
-create_build_dir <- function(pkg) {
+create_build_dir <- function(pkg, dry_run) {
   dir <- fs::path_join(c(tempdir(), pkg))
   fs::dir_create(dir)
-  withr::defer_parent(fs::dir_delete(dir))
+  if (!dry_run) withr::defer_parent(fs::dir_delete(dir))
   dir
 }
 

@@ -4,14 +4,21 @@
 \alias{conda_build}
 \title{Build an R package with Conda.}
 \usage{
-conda_build(pkg, tree)
+conda_build(pkg, tree, dry_run = FALSE)
 }
 \arguments{
 \item{pkg}{Package name.}
 
 \item{tree}{A \code{pkg_tree} object.}
+
+\item{dry_run}{Enable dry run when \code{TRUE}.}
 }
 \description{
 This function works on the assumption that all dependencies are already
 available.
+}
+\details{
+When dry-run is TRUE, the function generates the recipe file but does not
+initiate the build process. Instead, it returns the path to the temporary
+directory containing the recipe.
 }

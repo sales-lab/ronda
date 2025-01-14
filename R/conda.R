@@ -48,6 +48,7 @@ create_recipe <- function(pkg, tree, custom, dir) {
     compiler <- ""
     noarch <- "  noarch: generic"
   }
+  pkg_config <- if (info$NeedsCompilation == "yes") "pkg-config" else NULL
   custom_compiler <- format_deps(custom$compiler)
 
   r_deps <- pkg_deps(tree, pkg)
@@ -56,7 +57,7 @@ create_recipe <- function(pkg, tree, custom, dir) {
                      sanitize_version(r_vers),
                      sep = " >=")
 
-  build_deps <- c(base_deps, custom$build_deps) |> format_deps()
+  build_deps <- c(base_deps, custom$build_deps, pkg_config) |> format_deps()
   run_deps <- c(base_deps, custom$run_deps) |> format_deps()
 
   if (is.null(custom$script)) {

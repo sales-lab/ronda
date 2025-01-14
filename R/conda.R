@@ -48,7 +48,8 @@ create_recipe <- function(pkg, tree, custom, dir) {
   md5 <- info$MD5sum
   summary <- quote_string(info$Title)
   description <- recipe_description(info$Description)
-  home <- quote_string(info$URL)
+  home <- if (is.null(info$URL)) ""
+          else glue::glue("  home: '{quote_string(info$URL)}'")
   license <- quote_string(info$License)
 
   if (info$NeedsCompilation == "yes") {
@@ -149,7 +150,7 @@ about:
   summary: '{summary}'
   description: |
 {description}
-  home: '{home}'
+{home}
   license: '{license}'
 
 extra:

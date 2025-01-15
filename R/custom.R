@@ -29,10 +29,13 @@ custom_compiler <- list(
   torch = "cuda-compiler"
 )
 
-custom_build_deps <- list()
+custom_build_deps <- list(
+  xml2 = c("liblzma-devel", "zlib")
+)
 
 custom_run_deps <- list(
-  torch = "cuda"
+  torch = "cuda",
+  xml2 = "liblzma"
 )
 
 custom_script <- function(pkg) {

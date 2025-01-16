@@ -46,11 +46,11 @@ create_recipe <- function(pkg, tree, custom, dir) {
   version_safe <- sanitize_version(version)
   url <- glue::glue("{repo}/{pkg}_{version}.tar.gz")
   md5 <- info$MD5sum
-  summary <- quote_string(info$Title)
-  description <- recipe_description(info$Description)
+  summary <- format_block(info$Title)
+  description <- format_block(info$Description)
   home <- if (is.null(info$URL)) ""
           else glue::glue("  home: '{quote_string(info$URL)}'")
-  license <- quote_string(info$License)
+  license <- format_block(info$License)
 
   if (info$NeedsCompilation == "yes") {
     compiler <- compiler_spec
@@ -89,6 +89,12 @@ sanitize_version <- function(version) {
   str_replace_all(version, fixed("-"), ".")
 }
 
+recipe_title <- function(title) {
+  title |>
+    str_replace_all(fixed("\n"), " ") |>
+    quote_string()
+}
+
 recipe_description <- function(descr) {
   descr |>
     purrr::map_chr(\(l) paste0("    ", l)) |>
@@ -98,6 +104,19 @@ recipe_description <- function(descr) {
 #' @importFrom stringr str_length str_replace_all fixed
 quote_string <- function(value) {
   str_replace_all(value, fixed("'"), "''")
+}
+
+#' @importFrom stringr str_split_1 fixed
+format_block <- function(lines) {
+  lines |>
+    purrr::map(\(l) str_split_1(l, fixed("\n"))) |>
+    unlist() |>
+    str_prepend("    ") |>
+    paste(collapse = "\n")
+}
+
+str_prepend <- function(strs, prefix) {
+  paste0(prefix, strs)
 }
 
 format_deps <- function(deps) {
@@ -147,8 +166,9 @@ requirements:
 {run_deps}
 
 about:
-  summary: '{summary}'
-  description: |
+  summary: >
+{summary}
+  description: >
 {description}
 {home}
   license: '{license}'

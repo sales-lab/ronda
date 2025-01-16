@@ -18,7 +18,7 @@ This function works on the assumption that all dependencies are already
 available.
 }
 \details{
-When dry-run is TRUE, the function generates the recipe file but does not
+When \code{dry-run} is \code{TRUE}, the function generates the recipe file but does not
 initiate the build process. Instead, it returns the path to the temporary
 directory containing the recipe.
 }

@@ -73,7 +73,7 @@ set_built_pkgs <- function(build_sched, pkgs) {
   cs[clean] <- -1
   for (p in clean) {
     rds <- build_sched$rdeps[[p]]
-    cs[rds] <- cs[rds] - 1
+    cs[rds] <- max(cs[rds] - 1, -1)
   }
 
   structure(list(counts = cs, rdeps = build_sched$rdeps), class = "build_sched")

@@ -36,7 +36,7 @@ list_packages <- function() {
 #'
 #' @export
 print.pkg_tree <- function(x, ...) {
-  cat("Package tree including ", nrow(x$pkgs), "packages.\n")
+  cat("Package tree including", nrow(x$pkgs), "packages.\n")
 }
 
 #' Subset a package tree, keeping track of all required dependencies.

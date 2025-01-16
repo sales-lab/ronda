@@ -69,7 +69,10 @@ set_built_pkgs <- function(build_sched, pkgs) {
   cs <- build_sched$counts
   all_pkgs <- names(cs)
 
-  clean <- find_clean(build_sched, setdiff(all_pkgs, pkgs))
+  already_built <- all_pkgs[cs < 0]
+  dirty_pkgs <- setdiff(all_pkgs, union(already_built, pkgs))
+
+  clean <- find_clean(build_sched, dirty_pkgs)
   cs[clean] <- -1
   for (p in clean) {
     rds <- build_sched$rdeps[[p]]

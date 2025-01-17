@@ -54,53 +54,99 @@ buildable_pkgs <- function(build_sched) {
   names(cs)[cs == 0]
 }
 
-#' Set packages as built.
+#' Mark packages already built at their most recent version.
 #'
 #' @param build_sched A build schedule.
 #' @param pkgs A vector of package names.
 #' @return An updated version of the build schedule.
 #'
 #' @export
-set_built_pkgs <- function(build_sched, pkgs) {
+mark_pkgs_up_to_date <- function(build_sched, pkgs) {
+  if (length(pkgs) == 0) {
+    return(build_sched)
+  }
+
+  clean <- find_clean_pkgs(build_sched, pkgs)
+  mark_clean(build_sched, clean)
+}
+
+# Identify packages that belong to the up-to-date set and, either directly or
+# indirectly, depend only on other packages that are also up-to-date.
+find_clean_pkgs <- function(build_sched, up_to_date) {
+  cs <- build_sched$counts
+  rdeps <- build_sched$rdeps
+
+  stopifnot(all(up_to_date %in% names(cs)))
+
+  clean <- names(cs) %in% up_to_date
+  names(clean) <- names(cs)
+  clean_num <- 0
+  while (sum(clean) != clean_num) {
+    clean_num <- sum(clean)
+
+    for (p in names(cs)[!clean]) {
+      rs <- rdeps[[p]]
+      if (!is.null(rs)) {
+        clean[rs] <- FALSE
+      }
+    }
+  }
+
+  names(cs)[clean]
+}
+
+mark_clean <- function(build_sched, pkgs) {
   if (length(pkgs) == 0) {
     return(build_sched)
   }
 
   cs <- build_sched$counts
-  all_pkgs <- names(cs)
+  rdeps <- build_sched$rdeps
 
-  already_built <- all_pkgs[cs < 0]
-  dirty_pkgs <- setdiff(all_pkgs, union(already_built, pkgs))
+  for (p in pkgs) {
+    if (cs[p] >= 0) {
+      cs[p] <- -1
 
-  clean <- find_clean(build_sched, dirty_pkgs)
-  cs[clean] <- -1
-  for (p in clean) {
-    rds <- build_sched$rdeps[[p]]
-    cs[rds] <- max(cs[rds] - 1, -1)
+      rs <- rdeps[[p]]
+      if (!is.null(rs)) {
+        cs[rs] <- ifelse(cs[rs] < 0, -1, cs[rs] - 1)
+      }
+    }
   }
 
-  structure(list(counts = cs, rdeps = build_sched$rdeps), class = "build_sched")
+  build_sched$counts <- cs
+  return(build_sched)
 }
 
-find_clean <- function(build_sched, dirty) {
-  mask <- rep(FALSE, length(build_sched$count))
-  names(mask) <- names(build_sched$count)
-  mask[dirty] <- TRUE
 
-  dirty_count <- sum(mask)
-  repeat {
-    ps <- names(mask[mask])
-    for (p in ps) {
-      rds <- build_sched$rdeps[[p]]
-      mask[rds] <- TRUE
-    }
-
-    s <- sum(mask)
-    if (s > dirty_count) {
-      dirty_count <- s
-    } else {
-      ps <- names(mask[!mask])
-      return(ps)
-    }
+#' Record freshly built packages.
+#'
+#' @param build_sched A build schedule.
+#' @param pkgs A vector of package names.
+#' @return An updated version of the build schedule.
+#'
+#' @export
+mark_built_pkgs <- function(build_sched, pkgs) {
+  if (length(pkgs) == 0) {
+    return(build_sched)
   }
+
+  cs <- build_sched$counts
+  rdeps <- build_sched$rdeps
+
+  stopifnot(all(pkgs %in% names(cs)))
+
+  cs[pkgs] <- -1
+
+  for (p in pkgs) {
+    rs <- rdeps[[p]]
+
+    # If package `p` is a dependency of another package that has been marked
+    # as built, we need to trigger a rebuild of the dependent package as well.
+    # That's the reason why we set the count to 0 if it was -1.
+    cs[rs] <- ifelse(cs[rs] == -1, 0, cs[rs] - 1)
+  }
+
+  build_sched$counts <- cs
+  return(build_sched)
 }

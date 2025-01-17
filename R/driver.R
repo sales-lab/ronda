@@ -17,9 +17,9 @@ ronda_build <- function(pkgs) {
 
   bs <-
     build_schedule(tree) |>
-    set_built_pkgs(match_local_packages(tree, local_channel()))
+    mark_pkgs_up_to_date(match_local_packages(tree, local_channel()))
 
-  repeat {
+  repeat { 
     pkgs <- buildable_pkgs(bs)
     if (length(pkgs) == 0) {
       break
@@ -33,7 +33,7 @@ ronda_build <- function(pkgs) {
       conda_build(p, tree)
     }
 
-    bs <- set_built_pkgs(bs, pkgs)
+    bs <- mark_built_pkgs(bs, pkgs)
   }
 }
 

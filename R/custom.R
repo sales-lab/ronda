@@ -30,6 +30,7 @@ custom_compiler <- list(
 )
 
 custom_build_deps <- list(
+  systemfonts = c("expat", "zlib"),
   xml2 = c("liblzma-devel", "zlib")
 )
 

@@ -49,8 +49,8 @@ create_recipe <- function(pkg, tree, custom, dir) {
   summary <- format_block(info$Title)
   description <- format_block(info$Description)
   home <- if (is.null(info$URL)) ""
-          else glue::glue("  home: '{quote_string(info$URL)}'")
-  license <- format_block(info$License)
+          else glue::glue("  home: '{format_entry(info$URL)}'")
+  license <- format_entry(info$License)
 
   if (info$NeedsCompilation == "yes") {
     compiler <- compiler_spec
@@ -89,9 +89,11 @@ sanitize_version <- function(version) {
   str_replace_all(version, fixed("-"), ".")
 }
 
-recipe_title <- function(title) {
-  title |>
+#' @importFrom stringr str_replace_all str_squish
+format_entry <- function(entry) {
+  entry |>
     str_replace_all(fixed("\n"), " ") |>
+    str_squish() |>
     quote_string()
 }
 

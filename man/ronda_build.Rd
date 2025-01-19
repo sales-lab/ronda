@@ -4,10 +4,13 @@
 \alias{ronda_build}
 \title{Build a set of packages, including all of their dependencies.}
 \usage{
-ronda_build(pkgs)
+ronda_build(pkgs, log_dir = getwd())
 }
 \arguments{
 \item{pkgs}{A vector of package names.}
+
+\item{log_dir}{Write logs to specified directory, defaulting to current
+directory.}
 }
 \description{
 Packages already available in the local Conda channel are skipped.

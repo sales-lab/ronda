@@ -19,6 +19,11 @@
 #'
 #' @export
 conda_build <- function(pkg, tree, dry_run = FALSE, log_dir = getwd()) {
+  check_string(pkg)
+  check_class(tree, "pkg_tree")
+  check_bool(dry_run)
+  check_string(log_dir)
+
   build_dir <- create_build_dir(pkg, dry_run)
   custom <- lookup_custom(pkg)
   recipe <- create_recipe(pkg, tree, custom, build_dir)

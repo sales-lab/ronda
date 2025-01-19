@@ -47,8 +47,23 @@ print.pkg_tree <- function(x, ...) {
 #' @return Another `pkg_tree`, including required packages and their
 #'     dependencies.
 #'
+#' @importFrom cli cli_abort
+#' @importFrom utils head
 #' @export
 subset.pkg_tree <- function(x, subset, ...) {
+  check_type(subset, "character")
+  check_length(subset, c(0, NA), interval = TRUE)
+  check_contents(subset, Negate(is.na))
+
+  if (!all(subset %in% x$pkgs)) {
+    invalid <- setdiff(subset, x$pkgs)
+    some <- paste(head(invalid), collapse = ", ")
+    cli_abort(c(
+      "Some of the requested packages do not exist.",
+      "i" = "For instance: {some}"
+    ))
+  }
+
   queue <- subset
   ns <- subset
 
@@ -90,11 +105,9 @@ names.pkg_tree <- function(x) {
 #' @importFrom cli cli_abort
 #' @export
 pkg_deps <- function(tree, pkg) {
-  if (!is.character(pkg)) {
-    cli_abort("`pkg` should be a character vector.")
-  } else if (length(pkg) != 1) {
-    cli_abort("`pkg` should contain a single entry.")
-  }
+  check_class(tree, "pkg_tree")
+  check_string(pkg)
+  check_content(pkg, Negate(is.na))
 
   tree$deps[[pkg]]
 }
@@ -107,6 +120,10 @@ pkg_deps <- function(tree, pkg) {
 #'
 #' @export
 pkg_repos <- function(tree, pkg) {
+  check_class(tree, "pkg_tree")
+  check_type(pkg, "character")
+  check_contents(pkg, Negate(is.na))
+
   tree$pkgs[pkg, "Repository"]
 }
 
@@ -118,6 +135,10 @@ pkg_repos <- function(tree, pkg) {
 #'
 #' @export
 pkg_versions <- function(tree, pkg) {
+  check_class(tree, "pkg_tree")
+  check_type(pkg, "character")
+  check_contents(pkg, Negate(is.na))
+
   tree$pkgs[pkg, "Version"]
 }
 
@@ -129,6 +150,10 @@ pkg_versions <- function(tree, pkg) {
 #'
 #' @export
 pkg_info <- function(tree, pkg) {
+  check_class(tree, "pkg_tree")
+  check_string(pkg)
+  check_content(pkg, Negate(is.na))
+
   l <- as.list(tree$pkgs[pkg, , drop = TRUE])
 
   d <- utils::packageDescription(pkg)

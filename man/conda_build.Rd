@@ -4,7 +4,7 @@
 \alias{conda_build}
 \title{Build an R package with Conda.}
 \usage{
-conda_build(pkg, tree, dry_run = FALSE)
+conda_build(pkg, tree, dry_run = FALSE, log_dir = getwd())
 }
 \arguments{
 \item{pkg}{Package name.}
@@ -12,6 +12,9 @@ conda_build(pkg, tree, dry_run = FALSE)
 \item{tree}{A \code{pkg_tree} object.}
 
 \item{dry_run}{Enable dry run when \code{TRUE}.}
+
+\item{log_dir}{Write logs to specified directory, defaulting to current
+directory.}
 }
 \description{
 This function works on the assumption that all dependencies are already

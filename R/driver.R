@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Gabriele Sales
+# Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
 
@@ -13,6 +13,11 @@
 #' @importFrom cli cli_progress_step
 #' @export
 ronda_build <- function(pkgs, log_dir = getwd()) {
+  check_type(pkgs, "character")
+  check_length(pkgs, c(0, NA), interval = TRUE)
+  check_contents(pkgs, Negate(is.na))
+  check_string(log_dir)
+
   tree <-
     all_packages() |>
     subset(pkgs)

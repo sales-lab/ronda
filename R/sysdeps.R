@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Gabriele Sales
+# Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
 
@@ -10,6 +10,8 @@
 #' @importFrom pkgdepends sysreqs_install_plan
 #' @export
 lookup_sysdeps <- function(pkg) {
+  check_string(pkg)
+
   p <- sysreqs_install_plan(pkg)
   sr <- p$packages$sysreq
   unlist(purrr::map(sr, \(r) {

@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Gabriele Sales
+# Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
 
@@ -9,6 +9,8 @@
 #'
 #' @export
 conda_channel <- function(path) {
+  check_string(path)
+
   manifest_path <- fs::path_join(c(path, "channeldata.json"))
   manifest <- jsonlite::read_json(manifest_path)
   structure(list(pkgs = purrr::map_chr(manifest$packages, \(p) p$version)),
@@ -59,6 +61,8 @@ empty_channel <- function() {
 #'
 #' @export
 channel_packages <- function(channel) {
+  check_class(channel, "conda_channel")
+
   data.frame(package = names(channel$pkgs), version = channel$pkgs,
              row.names = NULL)
 }

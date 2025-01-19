@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Gabriele Sales
+# Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
 
@@ -9,6 +9,8 @@
 #'
 #' @export
 build_schedule <- function(tree) {
+  check_class(tree, "pkg_tree")
+
   pkgs <- names(tree)
 
   counts <- rep.int(0, length(pkgs))
@@ -50,6 +52,8 @@ print.build_sched <- function(x, ...) {
 #'
 #' @export
 buildable_pkgs <- function(build_sched) {
+  check_class(build_sched, "build_sched")
+
   cs <- build_sched$counts
   names(cs)[cs == 0]
 }
@@ -62,6 +66,10 @@ buildable_pkgs <- function(build_sched) {
 #'
 #' @export
 mark_pkgs_up_to_date <- function(build_sched, pkgs) {
+  check_class(build_sched, "build_sched")
+  check_class(pkgs, "character")
+  check_contents(pkgs, Negate(is.na))
+
   if (length(pkgs) == 0) {
     return(build_sched)
   }
@@ -127,6 +135,10 @@ mark_clean <- function(build_sched, pkgs) {
 #'
 #' @export
 mark_built_pkgs <- function(build_sched, pkgs) {
+  check_class(build_sched, "build_sched")
+  check_type(pkgs, "character")
+  check_contents(pkgs, Negate(is.na))
+
   if (length(pkgs) == 0) {
     return(build_sched)
   }

@@ -14,9 +14,11 @@
 #' @param pkg Package name.
 #' @param tree A `pkg_tree` object.
 #' @param dry_run Enable dry run when `TRUE`.
+#' @param log_dir Write logs to specified directory, defaulting to current
+#'                directory.
 #'
 #' @export
-conda_build <- function(pkg, tree, dry_run = FALSE) {
+conda_build <- function(pkg, tree, dry_run = FALSE, log_dir = getwd()) {
   build_dir <- create_build_dir(pkg, dry_run)
   custom <- lookup_custom(pkg)
   recipe <- create_recipe(pkg, tree, custom, build_dir)
@@ -24,7 +26,7 @@ conda_build <- function(pkg, tree, dry_run = FALSE) {
   if (dry_run) {
     return(build_dir)
   } else {
-    run_build(build_dir, recipe)
+    run_build(build_dir, recipe, log_dir)
     return(pkg)
   }
 }
@@ -187,11 +189,11 @@ compiler_spec <- "
 "
 
 #' @importFrom cli cli_abort
-run_build <- function(dir, recipe) {
+run_build <- function(dir, recipe, log_dir) {
   pkg <- fs::path_file(dir)
   parent <- fs::path_dir(dir)
 
-  log_file <- paste0(pkg, ".log")
+  log_file <- fs::path_join(c(log_dir, paste0(pkg, ".log")))
   res <- processx::run(
     "conda", c("build", "--R", r_version(), pkg),
     error_on_status = FALSE, wd = parent, stderr_to_stdout = TRUE,

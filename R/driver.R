@@ -7,10 +7,12 @@
 #' Packages already available in the local Conda channel are skipped.
 #'
 #' @param pkgs A vector of package names.
+#' @param log_dir Write logs to specified directory, defaulting to current
+#'                directory.
 #'
 #' @importFrom cli cli_progress_step
 #' @export
-ronda_build <- function(pkgs) {
+ronda_build <- function(pkgs, log_dir = getwd()) {
   tree <-
     all_packages() |>
     subset(pkgs)
@@ -30,7 +32,7 @@ ronda_build <- function(pkgs) {
         paste0("Building ", p),
         msg_done = paste0("Built ", p)
       )
-      conda_build(p, tree)
+      conda_build(p, tree, log_dir = log_dir)
     }
 
     bs <- mark_built_pkgs(bs, pkgs)

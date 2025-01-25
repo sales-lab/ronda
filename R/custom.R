@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Gabriele Sales
+# Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
 
@@ -31,6 +31,7 @@ custom_compiler <- list(
 
 custom_build_deps <- list(
   systemfonts = c("expat", "zlib"),
+  textshaping = c("zlib"),
   xml2 = c("liblzma-devel", "zlib")
 )
 

@@ -166,9 +166,13 @@ requirements:
   build:
 {compiler}
 {custom_compiler}
+    - liblzma-devel
+    - zlib
 {build_deps}
   host:
     - r-base
+    - liblzma-devel
+    - zlib
 {build_deps}
   run:
     - r-base

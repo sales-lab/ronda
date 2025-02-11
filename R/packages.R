@@ -156,10 +156,10 @@ pkg_info <- function(tree, pkg) {
 
   l <- as.list(tree$pkgs[pkg, , drop = TRUE])
 
-  d <- utils::packageDescription(pkg)
-  l$Title <- d$Title
-  l$Description <- format_description(d$Description)
-  l$URL <- d$URL
+  # TODO: fill the following information properly
+  l$Title <- pkg
+  l$Description <- ""
+  l$URL <- ""
 
   l
 }

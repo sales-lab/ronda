@@ -6,7 +6,7 @@
 \alias{ronda-package}
 \title{ronda: Build driver for Conda packages}
 \description{
-Automates the process of packaging R projects for distribution using the Conda package manager.
+Repackage any R package for distribution via Conda.
 }
 \author{
 \strong{Maintainer}: Gabriele Sales \email{gabriele.sales@unipd.it} (\href{https://orcid.org/0000-0003-2078-5661}{ORCID})

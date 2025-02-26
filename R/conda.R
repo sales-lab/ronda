@@ -46,7 +46,7 @@ create_build_dir <- function(pkg, dry_run) {
 create_recipe <- function(pkg, tree, custom, dir) {
   qname <- qualified_names(pkg, tree)
 
-  info <- pkg_info(tree, pkg)
+  info <- pkg_info(tree, pkg, download = TRUE)
 
   repo <- info$Repository
   version <- info$Version

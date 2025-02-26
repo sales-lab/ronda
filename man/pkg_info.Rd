@@ -4,12 +4,14 @@
 \alias{pkg_info}
 \title{Retrieve package information.}
 \usage{
-pkg_info(tree, pkg)
+pkg_info(tree, pkg, download = FALSE)
 }
 \arguments{
 \item{tree}{A \code{pkg_tree} object.}
 
 \item{pkg}{A length-one vector containing a package name.}
+
+\item{download}{Download package tarball to extract full metadata.}
 }
 \value{
 A list including all available package information.

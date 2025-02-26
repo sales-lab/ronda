@@ -146,22 +146,47 @@ pkg_versions <- function(tree, pkg) {
 #'
 #' @param tree A `pkg_tree` object.
 #' @param pkg A length-one vector containing a package name.
+#' @param download Download package tarball to extract full metadata.
 #' @return A list including all available package information.
 #'
 #' @export
-pkg_info <- function(tree, pkg) {
+pkg_info <- function(tree, pkg, download = FALSE) {
   check_class(tree, "pkg_tree")
   check_string(pkg)
   check_content(pkg, Negate(is.na))
 
   l <- as.list(tree$pkgs[pkg, , drop = TRUE])
 
-  # TODO: fill the following information properly
-  l$Title <- pkg
-  l$Description <- ""
-  l$URL <- ""
+  if (download) {
+    d <- fetch_description(pkg, tree$pkgs)
+    l$Title <- d$Title
+    l$Description <- d$Description
+    l$URL <- d$URL
+  } else {
+    l$Title <- pkg
+    l$Description <- ""
+    l$URL <- ""
+  }
 
   l
+}
+
+#' @importFrom utils download.packages
+fetch_description <- function(name, pkgs) {
+  path <- download.packages(
+    name, tempdir(), available = pkgs, quiet = TRUE
+  )[, 2]
+
+  filename <- paste0(name, "/DESCRIPTION")
+  res <- processx::run(
+    "tar", c("--extract", "--file", path, "--to-stdout", filename),
+    echo = FALSE
+  )
+
+  conn <- textConnection(res$stdout)
+  df <- read.dcf(conn)
+  stopifnot(nrow(df) == 1)
+  as.list(df[1, ])
 }
 
 format_description <- function(descr) {

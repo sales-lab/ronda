@@ -66,7 +66,7 @@ create_recipe <- function(pkg, tree, custom, dir) {
     compiler <- ""
     noarch <- "  noarch: generic"
   }
-  pkg_config <- if (info$NeedsCompilation == "yes") "pkg-config" else NULL
+  pkg_config <- if (info$NeedsCompilation == "yes") format_deps("pkg-config") else ""
   custom_compiler <- format_deps(custom$compiler)
 
   r_deps <- pkg_deps(tree, pkg)
@@ -75,7 +75,7 @@ create_recipe <- function(pkg, tree, custom, dir) {
                      sanitize_version(r_vers),
                      sep = " >=")
 
-  build_deps <- c(base_deps, custom$build_deps, pkg_config) |> format_deps()
+  build_deps <- c(base_deps, custom$build_deps) |> format_deps()
   run_deps <- c(base_deps, custom$run_deps) |> format_deps()
 
   if (is.null(custom$script)) {
@@ -87,6 +87,10 @@ create_recipe <- function(pkg, tree, custom, dir) {
 
   content <- glue::glue(recipe_template)
   writeLines(content, fs::path_join(c(dir, "meta.yaml")))
+
+  if (info$NeedsCompilation == "yes") {
+    writeLines(build_config, fs::path_join(c(dir, "conda_build_config.yaml")))
+  }
 
   content
 }
@@ -155,20 +159,25 @@ source:
 
 build:
   number: 0
-  merge_build_host: true
 {noarch}
 {script}
   rpaths:
     - lib/R/lib/
     - lib/
 
+{{% set build = 0 %}}
+
+build:
+  number: {{{{ build }}}}          # [not (unix and x86_64)]
+  number: {{{{ build + 100 }}}}    # [unix and x86_64 and microarch_level == 1]
+  number: {{{{ build + 300 }}}}    # [unix and x86_64 and microarch_level == 3]
+  number: {{{{ build + 400 }}}}    # [unix and x86_64 and microarch_level == 4]
+
 requirements:
   build:
 {compiler}
 {custom_compiler}
-    - liblzma-devel
-    - zlib
-{build_deps}
+{pkg_config}
   host:
     - r-base
     - liblzma-devel
@@ -195,6 +204,14 @@ compiler_spec <- "
     - autoconf
     - \"{{ compiler('c') }}\"
     - \"{{ compiler('cxx') }}\"
+    - \"x86_64-microarch-level {{ microarch_level }}\"  # [unix and x86_64]
+"
+
+build_config <- "
+microarch_level:
+  - 1
+  - 3  # [unix and x86_64]
+  - 4  # [unix and x86_64]
 "
 
 #' @importFrom cli cli_abort

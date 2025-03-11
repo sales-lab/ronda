@@ -30,8 +30,8 @@ custom_compiler <- list(
 )
 
 custom_build_deps <- list(
-  systemfonts = "expat",
-  xml2 = "liblzma-devel"
+  Cairo = c("xorg-xproto", "xorg-kbproto", "xorg-renderproto", "xorg-xextproto"),
+  systemfonts = "expat"
 )
 
 custom_run_deps <- list(

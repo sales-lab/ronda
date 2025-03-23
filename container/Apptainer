@@ -1,0 +1,56 @@
+Bootstrap: docker
+From: ubuntu:24.04
+Stage: build
+
+%files
+    rrutter.gpg /etc/apt/trusted.gpg.d/rrutter.gpg
+    ronda*.tar.gz /opt/ronda.tar.gz
+
+%post
+    chown root:root /etc/apt/trusted.gpg.d/rrutter.gpg && \
+    chmod 644 /etc/apt/trusted.gpg.d/rrutter.gpg && \
+    echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/rrutter.gpg] http://ppa.launchpad.net/marutter/rrutter4.0/ubuntu noble main' >/etc/apt/sources.list.d/rrutter.list && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libcurl4-openssl-dev r-base-dev wget && \
+    Rscript -e 'install.packages(c("BiocManager", "cli", "erify", "fs", "glue", "jsonlite", "pkgdepends", "processx", "purrr", "stringr", "withr"))' && \
+    R CMD INSTALL /opt/ronda.tar.gz && \
+    tar --create --file /rpkgs.tar --directory /usr/local/lib/R/site-library .
+
+
+Bootstrap: docker
+From: ubuntu:24.04
+Stage: final
+
+%files
+    rrutter.gpg /etc/apt/trusted.gpg.d/rrutter.gpg
+
+%files from build
+    /rpkgs.tar /rpkgs.tar
+
+%post
+    chown root:root /etc/apt/trusted.gpg.d/rrutter.gpg && \
+    chmod 644 /etc/apt/trusted.gpg.d/rrutter.gpg && \
+    echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/rrutter.gpg] http://ppa.launchpad.net/marutter/rrutter4.0/ubuntu noble main' >/etc/apt/sources.list.d/rrutter.list && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base wget && \
+    rm -rf /var/lib/apt/lists/*
+
+%post
+    tar --extract --file /rpkgs.tar --directory /usr/local/lib/R/site-library && \
+    rm /rpkgs.tar
+
+%post
+    wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" && \
+    bash Miniforge3.sh -b -p /opt/conda && \
+    . /opt/conda/etc/profile.d/conda.sh && \
+    conda activate && \
+    conda update --all && \
+    conda install -y conda-build
+
+%environment
+    export LC_ALL=C
+
+%runscript
+    . /opt/conda/etc/profile.d/conda.sh && \
+    conda activate && \
+    R_LIBS_USER=/none /usr/bin/R --no-save

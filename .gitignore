@@ -6,3 +6,5 @@
 .quarto
 .Rprofile
 ronda.Rproj
+container/ronda*.tar.gz
+container/*.sif

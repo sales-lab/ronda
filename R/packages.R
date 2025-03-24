@@ -222,3 +222,15 @@ format_description <- function(descr) {
   lines <- unlist(strsplit(descr, "\n"))
   sub("^\\s*", "", lines)
 }
+
+#' Build a package tree including all Bioconductor packages
+#'
+#' @return A `pkg_tree` object.
+#'
+#' @importFrom stringr str_detect 
+#' @export
+bioc_packages <- function() {
+  tree <- all_packages()
+  sel <- str_detect(tree$pkgs[, "Repository"], "bioconductor.org")
+  subset(tree, tree$pkgs[sel, "Package"])
+}

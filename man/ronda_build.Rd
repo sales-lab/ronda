@@ -7,7 +7,7 @@
 ronda_build(pkgs, log_dir = getwd())
 }
 \arguments{
-\item{pkgs}{A vector of package names.}
+\item{pkgs}{A vector of package names, or a \code{pkg_tree} object.}
 
 \item{log_dir}{Write logs to specified directory, defaulting to current
 directory.}

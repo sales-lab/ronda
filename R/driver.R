@@ -6,22 +6,21 @@
 #'
 #' Packages already available in the local Conda channel are skipped.
 #'
-#' @param pkgs A vector of package names.
+#' @param pkgs A vector of package names, or a `pkg_tree` object.
 #' @param log_dir Write logs to specified directory, defaulting to current
 #'                directory.
 #'
 #' @importFrom cli cli_progress_step
 #' @export
 ronda_build <- function(pkgs, log_dir = getwd()) {
-  check_type(pkgs, "character")
-  check_length(pkgs, c(0, NA), interval = TRUE)
-  check_contents(pkgs, Negate(is.na))
+  if (!inherits(pkgs, "pkg_tree")) {
+    check_type(pkgs, "character")
+    check_length(pkgs, c(0, NA), interval = TRUE)
+    check_contents(pkgs, Negate(is.na))
+  }
   check_string(log_dir)
 
-  tree <-
-    all_packages() |>
-    subset(pkgs)
-
+  tree <- if (inherits(pkgs, "pkg_tree")) pkgs else subset(all_packages(), pkgs)
   bs <-
     build_schedule(tree) |>
     mark_pkgs_up_to_date(match_local_packages(tree, local_channel()))

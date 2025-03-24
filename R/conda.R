@@ -124,8 +124,17 @@ format_block <- function(lines) {
   lines |>
     purrr::map(\(l) str_split_1(l, fixed("\n"))) |>
     unlist() |>
+    purrr::map(quote_curly) |>
     str_prepend("    ") |>
     paste(collapse = "\n")
+}
+
+quote_curly <- function(str) {
+  if (str_detect(str, fixed("{{"))) {
+    paste0("{% raw %}", str, "{% endraw %}")
+  } else {
+    str
+  }
 }
 
 str_prepend <- function(strs, prefix) {

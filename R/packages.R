@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Gabriele Sales
+# Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
 
@@ -6,6 +6,7 @@
 #'
 #' @return A `pkg_tree` object.
 #'
+#' @importFrom cli cli_warn
 #' @export
 all_packages <- function() {
   pkgs <- list_packages()
@@ -16,6 +17,16 @@ all_packages <- function() {
     tools::package_dependencies(rownames(pkgs), db = pkgs) |>
     purrr::map(\(ds) ds[!ds %in% builtins])
 
+  broken <- packages_with_missing_deps(deps)
+  if (sum(broken) > 0) {
+    cli_warn(c(
+            "Some packages declare unknown dependencies.",
+      "i" = "Ignoring {sum(broken)} packages{?s}."
+    ))
+  }
+
+  pkgs <- pkgs[!broken, , drop = FALSE]
+  deps <- deps[!broken]
   structure(list(pkgs = pkgs, deps = deps), class = "pkg_tree")
 }
 
@@ -27,6 +38,23 @@ list_packages <- function() {
     \(r) utils::available.packages(repos = r, fields = "Description")
   )
   do.call(rbind, ap)
+}
+
+# TODO: replace with faster implementation.
+#' @importFrom stats setNames
+packages_with_missing_deps <- function(deps) {
+  ns <- names(deps)
+  broken <- setNames(logical(length(ns)), ns)
+
+  repeat {
+    n <- sum(broken)
+    broken <- purrr::map_lgl(deps, \(ds) !all(ds %in% ns) || any(broken[ds]))
+    if (sum(broken) == n) {
+      break
+    }
+  }
+
+  broken
 }
 
 #' Print function for `pkg_tree` objects.
@@ -80,6 +108,7 @@ subset.pkg_tree <- function(x, subset, ...) {
     }
   }
 
+  stopifnot(all(ns %in% rownames(x$pkgs)))
   structure(
     list(pkgs = x$pkgs[ns, , drop = FALSE], deps = x$deps[ns]),
     class = "pkg_tree"

@@ -162,3 +162,41 @@ mark_built_pkgs <- function(build_sched, pkgs) {
   build_sched$counts <- cs
   return(build_sched)
 }
+
+#' Record build failures.
+#'
+#' @param build_sched A build schedule.
+#' @param pkgs A vector of package names.
+#' @return An updated version of the build schedule.
+#'
+#' @export
+mark_failed_pkgs <- function(build_sched, pkgs) {
+  check_class(build_sched, "build_sched")
+  check_type(pkgs, "character")
+  check_contents(pkgs, Negate(is.na))
+
+  if (length(pkgs) == 0) {
+    return(build_sched)
+  }
+
+  
+  cs <- build_sched$counts
+  rdeps <- build_sched$rdeps
+
+  stopifnot(all(pkgs %in% names(cs)))
+
+  queue <- pkgs
+  while (length(queue) > 0) {
+    cs[queue] <- -1
+  
+    queue <-
+      queue |>
+      purrr::map(\(p) rdeps[[p]]) |>
+      unlist() |>
+      unique() |>
+      purrr::discard(\(p) cs[[p]] < 0)
+  }
+
+  build_sched$counts <- cs
+  return(build_sched)
+}

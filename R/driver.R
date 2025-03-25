@@ -25,21 +25,46 @@ ronda_build <- function(pkgs, log_dir = getwd()) {
     build_schedule(tree) |>
     mark_pkgs_up_to_date(match_local_packages(tree, local_channel()))
 
+  fail_count <- 0L
+
   repeat { 
     pkgs <- buildable_pkgs(bs)
     if (length(pkgs) == 0) {
       break
     }
 
+    succ <- character()
+    fail <- character()
     for (p in pkgs) {
-      cli_progress_step(
-        paste0("Building ", p),
-        msg_done = paste0("Built ", p)
-      )
-      conda_build(p, tree, log_dir = log_dir)
+      step <- function() {
+        cli_progress_step(
+          paste0("Building ", p),
+          msg_done = paste0("Built ", p),
+          msg_failed = paste0("Failed ", p)
+        )
+        conda_build(p, tree, log_dir = log_dir)
+      }
+
+      res <- try(step(), silent = TRUE)
+      if (inherits(res, "try-error")) {
+        fail <- c(fail, p)
+      } else {
+        succ <- c(succ, p)
+      }
     }
 
-    bs <- mark_built_pkgs(bs, pkgs)
+    fail_count <- fail_count + length(fail)
+    bs <-
+      bs |>
+      mark_failed_pkgs(fail) |>
+      mark_built_pkgs(succ)
+  }
+
+  if (fail_count > 0) {
+    cli_abort(c(
+      "x" = "Build failed.",
+      "i" = "There was an error building {fail_count} package{?s}."
+    ))
   }
 }
 

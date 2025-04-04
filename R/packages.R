@@ -234,3 +234,12 @@ bioc_packages <- function() {
   sel <- str_detect(tree$pkgs[, "Repository"], "bioconductor.org")
   subset(tree, tree$pkgs[sel, "Package"])
 }
+
+packages_for_test <- function(deps) {
+  pkgs <- data.frame(
+    Package = names(deps),
+    Version = "1.0",
+    row.names = names(deps)
+  )
+  structure(list(pkgs = as.matrix(pkgs), deps = deps), class = "pkg_tree")
+}

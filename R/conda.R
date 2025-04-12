@@ -166,17 +166,15 @@ source:
   url: '{url}'
   md5: '{md5}'
 
+{{% set build = 0 %}}
+
 build:
-  number: 0
 {noarch}
 {script}
   rpaths:
     - lib/R/lib/
     - lib/
 
-{{% set build = 0 %}}
-
-build:
   number: {{{{ build }}}}          # [not (unix and x86_64)]
   number: {{{{ build + 100 }}}}    # [unix and x86_64 and microarch_level == 1]
   number: {{{{ build + 300 }}}}    # [unix and x86_64 and microarch_level == 3]

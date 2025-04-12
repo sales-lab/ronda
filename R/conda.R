@@ -1,6 +1,18 @@
 # Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
+conda_artifact_dir <- function() {
+  prefix <- Sys.getenv("CONDA_PREFIX")
+  if (!fs::is_dir(prefix)) {
+    cli_abort(c(
+      "x" = "Conda environment is not active.",
+      "i" = "Have you tried running {.code conda activate base}?"
+    ))
+  }
+
+  fs::path_join(c(prefix, "conda-bld"))
+}
+
 
 #' Build an R package with Conda.
 #'
@@ -24,7 +36,13 @@ conda_build <- function(pkg, tree, dry_run = FALSE, log_dir = getwd()) {
   check_bool(dry_run)
   check_string(log_dir)
 
-  build_dir <- create_build_dir(pkg, dry_run)
+  artifact_dir <- conda_artifact_dir()
+  if (!fs::is_dir(artifact_dir)) {
+    fs::dir_create(artifact_dir)
+    index_channel(artifact_dir, log_file = NULL)
+  }
+  
+  build_dir <- create_build_dir(pkg, artifact_dir, dry_run)
   custom <- lookup_custom(pkg)
   recipe <- create_recipe(pkg, tree, custom, build_dir)
 
@@ -36,9 +54,10 @@ conda_build <- function(pkg, tree, dry_run = FALSE, log_dir = getwd()) {
   }
 }
 
-create_build_dir <- function(pkg, dry_run) {
+create_build_dir <- function(pkg, artifact_dir, dry_run) {
   dir <- fs::path_join(c(tempdir(), pkg))
   fs::dir_create(dir)
+  fs::link_create(artifact_dir, fs::path_join(c(tempdir(), "output")))
   if (!dry_run) withr::defer_parent(fs::dir_delete(dir))
   dir
 }
@@ -56,8 +75,11 @@ create_recipe <- function(pkg, tree, custom, dir) {
   summary <- format_block(info$Title)
   description <- format_block(info$Description)
   home <- if (is.null(info$URL)) ""
-          else glue::glue("  home: '{format_entry(info$URL)}'")
-  license <- format_entry(info$License)
+          else glue::glue("  homepage: '{first_url(info$URL)}'")
+
+  # TODO: fix licence handling
+  license <- ""
+  # license <- format_license(info$License)
 
   if (info$NeedsCompilation == "yes") {
     compiler <- compiler_spec
@@ -86,10 +108,10 @@ create_recipe <- function(pkg, tree, custom, dir) {
   }
 
   content <- glue::glue(recipe_template)
-  writeLines(content, fs::path_join(c(dir, "meta.yaml")))
+  writeLines(content, fs::path_join(c(dir, "recipe.yaml")))
 
   if (info$NeedsCompilation == "yes") {
-    writeLines(build_config, fs::path_join(c(dir, "conda_build_config.yaml")))
+    writeLines(build_config, fs::path_join(c(dir, "variants.yaml")))
   }
 
   content
@@ -106,6 +128,11 @@ format_entry <- function(entry) {
     str_replace_all(fixed("\n"), " ") |>
     str_squish() |>
     quote_string()
+}
+
+#' @importFrom stringr str_extract
+first_url <- function(value) {
+  value |> str_extract("^[^,]+") |> quote_string()
 }
 
 recipe_description <- function(descr) {
@@ -141,6 +168,11 @@ str_prepend <- function(strs, prefix) {
   paste0(prefix, strs)
 }
 
+#' @importFrom stringr str_extract
+format_license <- function(value) {
+  value |> str_extract("^\\S+") |> quote_string()
+}
+
 format_deps <- function(deps) {
   lines <- purrr::map_chr(deps,  \(x) paste0("    - ", x))
   paste(lines, collapse = "\n")
@@ -166,22 +198,18 @@ source:
   url: '{url}'
   md5: '{md5}'
 
-{{% set build = 0 %}}
+context:
+  build: 0
 
 build:
+  number: ${{{{ build|int + (microarch_level|int) * 100 }}}}
 {noarch}
 {script}
-  rpaths:
-    - lib/R/lib/
-    - lib/
-
-  number: {{{{ build }}}}          # [not (unix and x86_64)]
-  number: {{{{ build + 100 }}}}    # [unix and x86_64 and microarch_level == 1]
-  number: {{{{ build + 300 }}}}    # [unix and x86_64 and microarch_level == 3]
-  number: {{{{ build + 400 }}}}    # [unix and x86_64 and microarch_level == 4]
 
 requirements:
   build:
+    - if: microarch_level|int > 0
+      then: x86_64-microarch-level ==${{{{ microarch_level }}}}
 {compiler}
 {custom_compiler}
 {pkg_config}
@@ -200,7 +228,7 @@ about:
   description: >
 {description}
 {home}
-  license: '{license}'
+  # license: '{license}'
 
 extra:
   recipe-maintainers:
@@ -209,27 +237,32 @@ extra:
 
 compiler_spec <- "
     - autoconf
-    - \"{{ compiler('c') }}\"
-    - \"{{ compiler('cxx') }}\"
-    - \"x86_64-microarch-level {{ microarch_level }}\"  # [unix and x86_64]
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
 "
 
 build_config <- "
 microarch_level:
-  - 1
-  - 3  # [unix and x86_64]
-  - 4  # [unix and x86_64]
+  - if: not(unix and x86_64)
+    then:
+      - 0
+    else:
+      - 1
 "
 
-#' @importFrom cli cli_abort
 run_build <- function(dir, recipe, log_dir) {
-  pkg <- fs::path_file(dir)
-  parent <- fs::path_dir(dir)
+  pkg_name <- fs::path_file(dir)
+  work_dir <- fs::path_dir(dir)
+  log_file <- fs::path_join(c(log_dir, paste0(pkg_name, ".log")))
+  build_package(pkg_name, recipe, work_dir, log_file)
+  index_channel(fs::path_join(c(work_dir, "output")), log_file)
+}
 
-  log_file <- fs::path_join(c(log_dir, paste0(pkg, ".log")))
+build_package <- function(pkg_name, recipe, work_dir, log_file) {
   res <- processx::run(
-    "conda", c("build", "--R", r_version(), pkg),
-    error_on_status = FALSE, wd = parent, stderr_to_stdout = TRUE,
+    "rattler-build",
+    c("build", "--recipe", pkg_name, "--wrap-log-lines", "false"),
+    error_on_status = FALSE, wd = work_dir, stderr_to_stdout = TRUE,
     stdout = log_file
   )
 
@@ -240,13 +273,28 @@ run_build <- function(dir, recipe, log_dir) {
 
     cli_abort(c(
       "x" = "Build failed.",
-      "i" = "There was an error building the {pkg} package."
+      "i" = "There was an error building the {pkg_name} package."
     ))
   }
 }
 
-r_version <- function() {
-  major <- R.version$major
-  minor <- R.version$minor
-  paste(major, minor, sep = ".")
+index_channel <- function(path, log_file) {
+  res <- processx::run(
+    "conda", c("index", "--channeldata", "."),
+    error_on_status = FALSE, wd = path, stderr_to_stdout = TRUE,
+    stdout = if (is.null(log_file)) "" else "|"
+  )
+
+  if (res$status != 0) {
+    if (!is.null(log_file)) {
+      log <- file(log_file, open = "at")
+      writeLines(c("", "==> Indexing output", res$stdout), log)
+      close(log)
+    }
+
+    cli_abort(c(
+      "x" = "Indexing failed.",
+      "i" = "There was an error producing the channel index."
+    ))
+  }
 }

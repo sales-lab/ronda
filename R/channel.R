@@ -12,6 +12,12 @@ conda_channel <- function(path) {
   check_string(path)
 
   manifest_path <- fs::path_join(c(path, "channeldata.json"))
+
+  # TODO: consider handling this as an error
+  if (!fs::is_file(manifest_path)) {
+    return(empty_channel())
+  }
+
   manifest <- jsonlite::read_json(manifest_path)
   structure(list(pkgs = purrr::map_chr(manifest$packages, \(p) p$version)),
             class = "conda_channel")
@@ -31,20 +37,11 @@ print.conda_channel <- function(x, ...) {
 #'
 #' @return A `conda_channel` object.
 #'
-#' @importFrom cli cli_abort
 #' @export
 local_channel <- function() {
-  prefix <- Sys.getenv("CONDA_PREFIX")
-  if (!fs::is_dir(prefix)) {
-    cli_abort(c(
-      "x" = "Conda environment is not active.",
-      "i" = "Have you tried running {.code conda activate base}?"
-    ))
-  }
-
-  local_dir <- fs::path_join(c(prefix, "conda-bld"))
+  local_dir <- conda_artifact_dir()
   if (!fs::is_dir(local_dir)) {
-    return(empty_channel())
+    empty_channel()
   }
 
   conda_channel(local_dir)

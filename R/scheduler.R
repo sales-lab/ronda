@@ -35,7 +35,6 @@ build_schedule <- function(tree) {
 #' @param x A `build_sched` object.
 #' @param ... Other arguments, ignored.
 #'
-#' @importFrom cli cli_text cli_ul cli_li cli_end
 #' @export
 print.build_sched <- function(x, ...) {
   cli_text(glue::glue("Build schedule for {length(x$counts)} packages."))

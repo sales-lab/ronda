@@ -6,7 +6,6 @@
 #'
 #' @return A `pkg_tree` object.
 #'
-#' @importFrom cli cli_warn
 #' @export
 all_packages <- function() {
   pkgs <- list_packages()
@@ -75,7 +74,6 @@ print.pkg_tree <- function(x, ...) {
 #' @return Another `pkg_tree`, including required packages and their
 #'     dependencies.
 #'
-#' @importFrom cli cli_abort
 #' @importFrom utils head
 #' @export
 subset.pkg_tree <- function(x, subset, ...) {
@@ -131,7 +129,6 @@ names.pkg_tree <- function(x) {
 #' @param pkg A length-one vector containing a package name.
 #' @return A vector of dependency names.
 #'
-#' @importFrom cli cli_abort
 #' @export
 pkg_deps <- function(tree, pkg) {
   check_class(tree, "pkg_tree")

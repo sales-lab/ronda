@@ -10,7 +10,6 @@
 #' @param log_dir Write logs to specified directory, defaulting to current
 #'                directory.
 #'
-#' @importFrom cli cli_progress_step
 #' @export
 ronda_build <- function(pkgs, log_dir = getwd()) {
   if (!inherits(pkgs, "pkg_tree")) {

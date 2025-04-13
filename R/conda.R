@@ -39,7 +39,7 @@ conda_build <- function(pkg, tree, dry_run = FALSE, log_dir = getwd()) {
   artifact_dir <- conda_artifact_dir()
   if (!fs::is_dir(artifact_dir)) {
     fs::dir_create(artifact_dir)
-    index_channel(artifact_dir, log_file = NULL)
+    index_channel(artifact_dir, log = NULL)
   }
   
   build_dir <- create_build_dir(pkg, artifact_dir, dry_run)
@@ -255,24 +255,32 @@ microarch_level:
 run_build <- function(dir, recipe, log_dir) {
   pkg_name <- fs::path_file(dir)
   work_dir <- fs::path_dir(dir)
-  log_file <- fs::path_join(c(log_dir, paste0(pkg_name, ".log")))
-  build_package(pkg_name, recipe, work_dir, log_file)
-  index_channel(fs::path_join(c(work_dir, "output")), log_file)
+  
+  log <- file(fs::path_join(c(log_dir, paste0(pkg_name, ".log"))), open = "at")
+  withr::defer(close(log))
+  
+  log_recipe(recipe, log)
+  build_package(pkg_name, recipe, work_dir, log)
+  index_channel(fs::path_join(c(work_dir, "output")), log)
 }
 
-build_package <- function(pkg_name, recipe, work_dir, log_file) {
+log_recipe <- function(recipe, log) {
+  writeLines(c("==> Recipe", recipe, ""), log)
+}
+
+build_package <- function(pkg_name, recipe, work_dir, log) {
+  writeLines("==> Build Log", log)
+  logger <- function(line, proc) writeLines(line, log)
+  
   res <- processx::run(
     "rattler-build",
     c("build", "--recipe", pkg_name, "--wrap-log-lines", "false"),
     error_on_status = FALSE, wd = work_dir, stderr_to_stdout = TRUE,
-    stdout = log_file
+    stdout = "|", stdout_line_callback = logger
   )
+  writeLines("", log)
 
   if (res$status != 0) {
-    log <- file(log_file, open = "at")
-    writeLines(c("", "==> Recipe", recipe), log)
-    close(log)
-
     cli_abort(c(
       "x" = "Build failed.",
       "i" = "There was an error building the {pkg_name} package."
@@ -280,18 +288,16 @@ build_package <- function(pkg_name, recipe, work_dir, log_file) {
   }
 }
 
-index_channel <- function(path, log_file) {
+index_channel <- function(path, log) {
   res <- processx::run(
     "conda", c("index", "--channeldata", "."),
     error_on_status = FALSE, wd = path, stderr_to_stdout = TRUE,
-    stdout = if (is.null(log_file)) "" else "|"
+    stdout = if (is.null(log)) "" else "|"
   )
 
   if (res$status != 0) {
-    if (!is.null(log_file)) {
-      log <- file(log_file, open = "at")
-      writeLines(c("", "==> Indexing output", res$stdout), log)
-      close(log)
+    if (!is.null(log)) {
+      writeLines(c("==> Indexing Log", res$stdout), log)
     }
 
     cli_abort(c(

@@ -1,6 +1,9 @@
 # Copyright (C) 2024-2025 Gabriele Sales
 # MIT License
 
+BUILT_PACKAGE <- -1
+FAILED_PACKAGE <- -2
+
 
 #' Computes a build schedule respecting inter-package dependencies.
 #'
@@ -112,17 +115,17 @@ mark_clean <- function(build_sched, pkgs) {
 
   for (p in pkgs) {
     if (cs[p] >= 0) {
-      cs[p] <- -1
+      cs[p] <- BUILT_PACKAGE
 
       rs <- rdeps[[p]]
       if (!is.null(rs)) {
-        cs[rs] <- ifelse(cs[rs] < 0, -1, cs[rs] - 1)
+        cs[rs] <- ifelse(cs[rs] < 0, cs[rs], cs[rs] - 1)
       }
     }
   }
 
   build_sched$counts <- cs
-  return(build_sched)
+  build_sched
 }
 
 
@@ -154,12 +157,20 @@ mark_built_pkgs <- function(build_sched, pkgs) {
 
     # If package `p` is a dependency of another package that has been marked
     # as built, we need to trigger a rebuild of the dependent package as well.
-    # That's the reason why we set the count to 0 if it was -1.
-    cs[rs] <- ifelse(cs[rs] == -1, 0, cs[rs] - 1)
+    # That's the reason why we set the count to 0 if it was BUILD_PACKAGE.
+    cs[rs] <- purrr::map_int(cs[rs], \(c) {
+      if (c > 0) {
+        c - 1
+      } else if (c == BUILT_PACKAGE) {
+        0
+      } else {
+        c
+      }
+    })
   }
 
   build_sched$counts <- cs
-  return(build_sched)
+  build_sched
 }
 
 #' Record build failures.
@@ -178,7 +189,6 @@ mark_failed_pkgs <- function(build_sched, pkgs) {
     return(build_sched)
   }
 
-  
   cs <- build_sched$counts
   rdeps <- build_sched$rdeps
 
@@ -186,8 +196,8 @@ mark_failed_pkgs <- function(build_sched, pkgs) {
 
   queue <- pkgs
   while (length(queue) > 0) {
-    cs[queue] <- -1
-  
+    cs[queue] <- FAILED_PACKAGE
+
     queue <-
       queue |>
       purrr::map(\(p) rdeps[[p]]) |>
@@ -197,5 +207,5 @@ mark_failed_pkgs <- function(build_sched, pkgs) {
   }
 
   build_sched$counts <- cs
-  return(build_sched)
+  build_sched
 }

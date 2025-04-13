@@ -43,3 +43,18 @@ test_that("up to date packages are rebuild because of dependencies", {
   sched <- build_schedule(tree) |> mark_pkgs_up_to_date(c("a", "b"))
   expect_schedule(sched, list("c", c("d", "e")))
 })
+
+test_that("failed builds are not retried", {
+  deps <- list(
+    a = character(),
+    b = "a",
+    c = "b"
+  )
+  tree <- packages_for_test(deps)
+
+  sched <- build_schedule(tree) |> mark_failed_pkgs("b")
+  expect_equal(buildable_pkgs(sched), "a")
+
+  sched <- mark_built_pkgs(sched, "a")
+  expect_equal(buildable_pkgs(sched), character())
+})

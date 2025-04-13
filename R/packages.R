@@ -39,17 +39,30 @@ list_packages <- function() {
   do.call(rbind, ap)
 }
 
-# TODO: replace with faster implementation.
 #' @importFrom stats setNames
 packages_with_missing_deps <- function(deps) {
   ns <- names(deps)
   broken <- setNames(logical(length(ns)), ns)
 
+  dep_tbl <- data.frame(
+    pkg = rep.int(ns, purrr::map_int(deps, length)),
+    dep = unlist(deps)
+  )
+
+  miss <- unique(unlist(deps))
+  miss <- data.frame(miss = miss[!(miss %in% ns)])
+
   repeat {
-    n <- sum(broken)
-    broken <- purrr::map_lgl(deps, \(ds) !all(ds %in% ns) || any(broken[ds]))
-    if (sum(broken) == n) {
+    matches <- dplyr::inner_join(
+      dep_tbl,
+      miss,
+      by = dplyr::join_by("dep" == "miss")
+    )
+    if (nrow(matches) == 0) {
       break
+    } else {
+      miss <- data.frame(miss = matches$pkg) |> dplyr::distinct()
+      broken[miss$miss] <- TRUE
     }
   }
 

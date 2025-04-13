@@ -74,8 +74,9 @@ create_recipe <- function(pkg, tree, custom, dir) {
   md5 <- info$MD5sum
   summary <- format_block(info$Title)
   description <- format_block(info$Description)
-  home <- if (is.null(info$URL)) ""
-          else glue::glue("  homepage: '{first_url(info$URL)}'")
+  home <- first_url(info$URL)
+  home <- if (is.null(home)) ""
+          else glue::glue("  homepage: '{quote_string(home)}'")
 
   # TODO: fix licence handling
   license <- ""
@@ -130,9 +131,10 @@ format_entry <- function(entry) {
     quote_string()
 }
 
-#' @importFrom stringr str_extract
 first_url <- function(value) {
-  value |> str_extract("^[^,]+") |> quote_string()
+  url <- value |> stringr::str_extract("^[^, \\s]+")
+  p <- tryCatch(curl::curl_parse_url(url), error = \(e) NULL)
+  if (is.null(p)) p else quote_string(url)
 }
 
 recipe_description <- function(descr) {

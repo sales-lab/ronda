@@ -69,7 +69,7 @@ create_recipe <- function(pkg, tree, custom, dir) {
 
   repo <- info$Repository
   version <- info$Version
-  version_safe <- sanitize_version(version)
+  version_safe <- conda_canonize_version(version)
   url <- glue::glue("{repo}/{pkg}_{version}.tar.gz")
   md5 <- info$MD5sum
   summary <- format_block(info$Title)
@@ -95,7 +95,7 @@ create_recipe <- function(pkg, tree, custom, dir) {
   r_deps <- pkg_deps(tree, pkg)
   r_vers <- pkg_versions(tree, r_deps)
   base_deps <- paste(qualified_names(r_deps, tree),
-                     sanitize_version(r_vers),
+                     conda_canonize_version(r_vers),
                      sep = " >=")
 
   build_deps <- c(base_deps, custom$build_deps) |> format_deps()
@@ -119,7 +119,7 @@ create_recipe <- function(pkg, tree, custom, dir) {
 }
 
 #' @importFrom stringr str_replace_all fixed
-sanitize_version <- function(version) {
+conda_canonize_version <- function(version) {
   str_replace_all(version, fixed("-"), ".")
 }
 

@@ -78,7 +78,7 @@ match_local_packages <- function(tree, channel) {
   tree_pkgs <- data.frame(
     name = tree_names,
     package = qnames,
-    version = pkg_versions(tree, tree_names),
+    version = conda_canonize_version(pkg_versions(tree, tree_names)),
     row.names = NULL
   )
 

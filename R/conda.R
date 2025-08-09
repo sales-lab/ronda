@@ -295,7 +295,7 @@ build_package <- function(pkg_name, recipe, work_dir, log) {
 
 index_channel <- function(path, log) {
   res <- processx::run(
-    "conda", c("index", "--channeldata", "."),
+    "rattler-index", c("fs", "."),
     error_on_status = FALSE, wd = path, stderr_to_stdout = TRUE,
     stdout = if (is.null(log)) "" else "|"
   )

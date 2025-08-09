@@ -19,6 +19,8 @@ ronda_build <- function(pkgs, log_dir = getwd()) {
   }
   check_string(log_dir)
 
+  increase_rlimit_nofile()
+
   tree <- if (inherits(pkgs, "pkg_tree")) pkgs else subset(all_packages(), pkgs)
   bs <-
     build_schedule(tree) |>
@@ -73,6 +75,14 @@ ronda_build <- function(pkgs, log_dir = getwd()) {
     built = built_pkgs,
     failed = failed_pkgs
   ))
+}
+
+increase_rlimit_nofile <- function() {
+  target <- 16 * 1024
+  limits <- unix::rlimit_nofile()
+  if (target < limits$max && target > limits$cur) {
+    unix::rlimit_nofile(cur = target)
+  }
 }
 
 match_local_packages <- function(tree, channel) {

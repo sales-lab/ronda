@@ -2,6 +2,11 @@
 # MIT License
 
 conda_artifact_dir <- function() {
+  bld_dir <- Sys.getenv("CONDA_BLD_PATH")
+  if (bld_dir != "") {
+    return(bld_dir)
+  }
+  
   prefix <- Sys.getenv("CONDA_PREFIX")
   if (!fs::is_dir(prefix)) {
     cli_abort(c(

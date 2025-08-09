@@ -295,7 +295,7 @@ build_package <- function(pkg_name, recipe, work_dir, log) {
 
 index_channel <- function(path, log) {
   res <- processx::run(
-    "rattler-index", c("fs", "."),
+    "rattler-index", c("fs", "--quiet", "."),
     error_on_status = FALSE, wd = path, stderr_to_stdout = TRUE,
     stdout = if (is.null(log)) "" else "|"
   )

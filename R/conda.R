@@ -18,6 +18,13 @@ conda_artifact_dir <- function() {
   fs::path_join(c(prefix, "conda-bld"))
 }
 
+conda_clear_build_dir <- function() {
+  bld_dir <- fs::path_join(c(conda_artifact_dir(), "bld"))
+  if (fs::is_dir(bld_dir)) {
+    fs::dir_delete(bld_dir)
+  }
+}
+
 
 #' Build an R package with Conda.
 #'

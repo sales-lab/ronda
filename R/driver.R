@@ -7,11 +7,13 @@
 #' Packages already available in the local Conda channel are skipped.
 #'
 #' @param pkgs A vector of package names, or a `pkg_tree` object.
-#' @param log_dir Write logs to specified directory, defaulting to current
-#'                directory.
+#' @param log_dir Write logs to specified directory, defaults to the current
+#'                working directory.
+#' @param clear_build_dir If TRUE, the package build directory is cleared before
+#'                        building.
 #'
 #' @export
-ronda_build <- function(pkgs, log_dir = getwd()) {
+ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
   if (!inherits(pkgs, "pkg_tree")) {
     check_type(pkgs, "character")
     check_length(pkgs, c(0, NA), interval = TRUE)
@@ -61,6 +63,10 @@ ronda_build <- function(pkgs, log_dir = getwd()) {
       bs |>
       mark_failed_pkgs(fail) |>
       mark_built_pkgs(succ)
+  }
+
+  if (clear_build_dir) {
+    conda_clear_build_dir()
   }
 
   fail_count <- length(failed_pkgs)

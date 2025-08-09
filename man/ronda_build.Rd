@@ -4,13 +4,16 @@
 \alias{ronda_build}
 \title{Build a set of packages, including all of their dependencies.}
 \usage{
-ronda_build(pkgs, log_dir = getwd())
+ronda_build(pkgs, log_dir = getwd(), clear_build_dir = TRUE)
 }
 \arguments{
 \item{pkgs}{A vector of package names, or a \code{pkg_tree} object.}
 
-\item{log_dir}{Write logs to specified directory, defaulting to current
-directory.}
+\item{log_dir}{Write logs to specified directory, defaults to the current
+working directory.}
+
+\item{clear_build_dir}{If TRUE, the package build directory is cleared before
+building.}
 }
 \description{
 Packages already available in the local Conda channel are skipped.

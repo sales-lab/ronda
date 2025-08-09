@@ -24,7 +24,8 @@ ronda_build <- function(pkgs, log_dir = getwd()) {
     build_schedule(tree) |>
     mark_pkgs_up_to_date(match_local_packages(tree, local_channel()))
 
-  fail_count <- 0L
+  built_pkgs <- character(0)
+  failed_pkgs <- character(0)
 
   repeat { 
     pkgs <- buildable_pkgs(bs)
@@ -52,19 +53,26 @@ ronda_build <- function(pkgs, log_dir = getwd()) {
       }
     }
 
-    fail_count <- fail_count + length(fail)
+    built_pkgs <- c(built_pkgs, succ)
+    failed_pkgs <- c(failed_pkgs, fail)
     bs <-
       bs |>
       mark_failed_pkgs(fail) |>
       mark_built_pkgs(succ)
   }
 
+  fail_count <- length(failed_pkgs)
   if (fail_count > 0) {
-    cli_abort(c(
+    cli_warn(c(
       "x" = "Build failed.",
       "i" = "There was an error building {fail_count} package{?s}."
     ))
   }
+
+  invisible(list(
+    built = built_pkgs,
+    failed = failed_pkgs
+  ))
 }
 
 match_local_packages <- function(tree, channel) {

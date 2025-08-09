@@ -294,10 +294,11 @@ build_package <- function(pkg_name, recipe, work_dir, log) {
 }
 
 index_channel <- function(path, log) {
+  args <- c("fs", "--write-zst", "false", "--write-shards", "false",
+            "--quiet", ".")
   res <- processx::run(
-    "rattler-index", c("fs", "--quiet", "."),
-    error_on_status = FALSE, wd = path, stderr_to_stdout = TRUE,
-    stdout = if (is.null(log)) "" else "|"
+    "rattler-index", args, error_on_status = FALSE, wd = path,
+    stderr_to_stdout = TRUE, stdout = if (is.null(log)) "" else "|"
   )
 
   if (res$status != 0) {

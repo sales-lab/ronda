@@ -11,16 +11,25 @@
 conda_channel <- function(path) {
   check_string(path)
 
-  manifest_path <- fs::path_join(c(path, "channeldata.json"))
-
-  # TODO: consider handling this as an error
-  if (!fs::is_file(manifest_path)) {
+  if (!fs::is_dir(path)) {
     return(empty_channel())
   }
 
-  manifest <- jsonlite::read_json(manifest_path)
-  structure(list(pkgs = purrr::map_chr(manifest$packages, \(p) p$version)),
-            class = "conda_channel")
+  ms <- fs::dir_map(path = path, type = "directory", fun = \(d) {
+    manifest_path <- fs::path_join(c(d, "repodata.json"))
+
+    # TODO: consider handling this as an error
+    if (!fs::is_file(manifest_path)) {
+      return(NULL)
+    }
+
+    manifest <- jsonlite::read_json(manifest_path)
+    pkgs <- manifest$`packages.conda`
+    vs <- purrr::map_chr(pkgs, \(p) p$version)
+    setNames(vs, purrr::map_chr(pkgs, \(p) p$name))
+  })
+
+  structure(list(pkgs = do.call(c, ms)), class = "conda_channel")
 }
 
 #' Print method for `conda_channel` objects.

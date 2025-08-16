@@ -99,10 +99,16 @@ match_local_packages <- function(tree, channel) {
 
   tree_names <- names(tree)
   qnames <- qualified_names(tree_names, tree)
+  versions <-
+    tree |>
+    pkg_versions(tree_names) |>
+    conda_canonize_version() |>
+    package_version()
+
   tree_pkgs <- data.frame(
     name = tree_names,
     package = qnames,
-    version = conda_canonize_version(pkg_versions(tree, tree_names)),
+    version = versions,
     row.names = NULL
   )
 

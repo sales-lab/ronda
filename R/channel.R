@@ -15,21 +15,27 @@ conda_channel <- function(path) {
     return(empty_channel())
   }
 
-  ms <- fs::dir_map(path = path, type = "directory", fun = \(d) {
-    manifest_path <- fs::path_join(c(d, "repodata.json"))
+  metas <-
+    fs::dir_map(path = path, type = "directory", fun = \(d) {
+      manifest_path <- fs::path_join(c(d, "repodata.json"))
 
-    # TODO: consider handling this as an error
-    if (!fs::is_file(manifest_path)) {
-      return(NULL)
-    }
+      # TODO: consider handling this as an error
+      if (!fs::is_file(manifest_path)) {
+        return(NULL)
+      }
 
-    manifest <- jsonlite::read_json(manifest_path)
-    pkgs <- manifest$`packages.conda`
-    vs <- purrr::map_chr(pkgs, \(p) p$version)
-    setNames(vs, purrr::map_chr(pkgs, \(p) p$name))
-  })
+      manifest <- jsonlite::read_json(manifest_path)
+      pkgs <- manifest$`packages.conda`
+      tbl <- data.frame(
+        name = purrr::map_chr(pkgs, \(p) p$name),
+        version = purrr::map_chr(pkgs, \(p) p$version) |>package_version()
+      )
+    }) |>
+    purrr::list_rbind() |>
+    dplyr::slice_max(version, by = "name")
 
-  structure(list(pkgs = do.call(c, ms)), class = "conda_channel")
+  versions <- setNames(metas$version, metas$name)
+  structure(list(pkgs = versions), class = "conda_channel")
 }
 
 #' Print method for `conda_channel` objects.

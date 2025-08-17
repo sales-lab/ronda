@@ -26,17 +26,23 @@ conda_channel <- function(path) {
 
       manifest <- jsonlite::read_json(manifest_path)
       pkgs <- manifest$`packages.conda`
-      tbl <- data.frame(
+      data.frame(
         name = purrr::map_chr(pkgs, \(p) p$name),
         version = purrr::map_chr(pkgs, \(p) p$version) |> package_version(),
         build = purrr::map_int(pkgs, \(p) p$build_number)
       )
     }) |>
-    purrr::list_rbind() |>
-    dplyr::slice_max(version, by = "name")
+    purrr::list_rbind()
 
+  if (nrow(pkgs) == 0) {
+    return(empty_channel())
+  }
+
+  pkgs$version <- package_version(pkgs$version)
+  pkgs <- dplyr::slice_max(pkgs, version, by = "name", with_ties = FALSE)
   rownames(pkgs) <- pkgs$name
   pkgs$name <- NULL
+
   structure(list(pkgs = pkgs), class = "conda_channel")
 }
 
@@ -47,7 +53,11 @@ conda_channel <- function(path) {
 #'
 #' @export
 print.conda_channel <- function(x, ...) {
-  cat("Conda channel including", nrow(x$pkgs), "packages.\n")
+  if (nrow(x$pkgs) == 0) {
+    cat("Empty Conda channel.\n")
+  } else {
+    cat("Conda channel including", nrow(x$pkgs), "packages.\n")
+  }
 }
 
 #' Load the local Conda channel.
@@ -65,7 +75,7 @@ local_channel <- function() {
 }
 
 empty_channel <- function() {
-  structure(list(pkgs = character()), class = "conda_channel")
+  structure(list(pkgs = data.frame()), class = "conda_channel")
 }
 
 #' List packages available from a channel.

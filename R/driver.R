@@ -97,6 +97,8 @@ match_local_packages <- function(tree, channel) {
     return(character())
   }
 
+  local_pkgs$package <- rownames(local_pkgs)
+
   tree_names <- names(tree)
   qnames <- qualified_names(tree_names, tree)
   versions <-

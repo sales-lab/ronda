@@ -10,7 +10,8 @@ channel_packages(channel)
 \item{channel}{A \code{conda_channel} object.}
 }
 \value{
-A data.frame with two columns: \code{package} name and \code{version}.
+A data.frame containing package versions and build numbers, with
+package names used as row names.
 }
 \description{
 List packages available from a channel.

@@ -15,7 +15,7 @@ conda_channel <- function(path) {
     return(empty_channel())
   }
 
-  metas <-
+  pkgs <-
     fs::dir_map(path = path, type = "directory", fun = \(d) {
       manifest_path <- fs::path_join(c(d, "repodata.json"))
 
@@ -28,14 +28,16 @@ conda_channel <- function(path) {
       pkgs <- manifest$`packages.conda`
       tbl <- data.frame(
         name = purrr::map_chr(pkgs, \(p) p$name),
-        version = purrr::map_chr(pkgs, \(p) p$version) |>package_version()
+        version = purrr::map_chr(pkgs, \(p) p$version) |> package_version(),
+        build = purrr::map_int(pkgs, \(p) p$build_number)
       )
     }) |>
     purrr::list_rbind() |>
     dplyr::slice_max(version, by = "name")
 
-  versions <- setNames(metas$version, metas$name)
-  structure(list(pkgs = versions), class = "conda_channel")
+  rownames(pkgs) <- pkgs$name
+  pkgs$name <- NULL
+  structure(list(pkgs = pkgs), class = "conda_channel")
 }
 
 #' Print method for `conda_channel` objects.
@@ -45,7 +47,7 @@ conda_channel <- function(path) {
 #'
 #' @export
 print.conda_channel <- function(x, ...) {
-  cat("Conda channel including", length(x$pkgs), "packages.\n")
+  cat("Conda channel including", nrow(x$pkgs), "packages.\n")
 }
 
 #' Load the local Conda channel.
@@ -69,12 +71,11 @@ empty_channel <- function() {
 #' List packages available from a channel.
 #'
 #' @param channel A `conda_channel` object.
-#' @return A data.frame with two columns: `package` name and `version`.
+#' @return A data.frame containing package versions and build numbers, with
+#'   package names used as row names.
 #'
 #' @export
 channel_packages <- function(channel) {
   check_class(channel, "conda_channel")
-
-  data.frame(package = names(channel$pkgs), version = channel$pkgs,
-             row.names = NULL)
+  channel$pkgs
 }

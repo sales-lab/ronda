@@ -28,12 +28,14 @@ conda_channel <- function(path) {
       pkgs <- manifest$`packages.conda`
       data.frame(
         name = purrr::map_chr(pkgs, \(p) p$name),
-        version = purrr::map_chr(pkgs, \(p) p$version) |> package_version(),
+        version = purrr::map_chr(pkgs, \(p) p$version),
         build = purrr::map_int(pkgs, \(p) p$build_number)
       )
     }) |>
     purrr::list_rbind()
 
+  is_r_pkg <- stringr::str_detect(pkgs$name, "^(r|bioconductor)-")
+  pkgs <- pkgs[is_r_pkg, , drop = FALSE]
   if (nrow(pkgs) == 0) {
     return(empty_channel())
   }

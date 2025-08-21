@@ -253,6 +253,7 @@ compiler_spec <- "
     - autoconf
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
+    - ${{ compiler('fortran') }}
 "
 
 build_config <- "

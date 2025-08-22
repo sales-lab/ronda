@@ -136,6 +136,27 @@ names.pkg_tree <- function(x) {
   rownames(x$pkgs)
 }
 
+#' Cast a package tree into a vector of package names.
+#'
+#' @param x A `pkg_tree` object.
+#' @param ... Ignored.
+#' @return A character vector of package names.
+#'
+#' @export
+as.character.pkg_tree <- function(x, ...) {
+  rownames(x$pkgs)
+}
+
+#' Trasform a tree object into a vector of package names for matching.
+#'
+#' @param x A `pkg_tree` object.
+#' @return A character vector of package names.
+#'
+#' @export
+mtfrm.pkg_tree <- function(x) {
+  rownames(x$pkgs)
+}
+
 #' Retrieve the dependencies of a package.
 #'
 #' @param tree A `pkg_tree` object.

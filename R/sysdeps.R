@@ -26,5 +26,6 @@ sysreqs_conv <- list(
   libicu = "icu",
   libjpeg = "libjpeg-turbo",
   libbz2 = "bzip2",
+  sqlite3 = "sqlite",
   x11 = c("xorg-libx11", "xorg-xproto", "xorg-kbproto", "xorg-renderproto", "xorg-xextproto")
 )

@@ -25,5 +25,6 @@ sysreqs_conv <- list(
   java = "openjdk",
   libicu = "icu",
   libjpeg = "libjpeg-turbo",
+  libbz2 = "bzip2",
   x11 = "xorg-libx11"
 )

@@ -22,6 +22,7 @@ lookup_sysdeps <- function(pkg) {
 
 sysreqs_conv <- list(
   gnumake = "make",
+  java = "openjdk",
   libicu = "icu",
   libjpeg = "libjpeg-turbo",
   x11 = "xorg-libx11"

@@ -23,6 +23,7 @@ Imports:
     pkgdepends,
     processx,
     purrr,
+    reticulate,
     stringr,
     tools,
     unix,

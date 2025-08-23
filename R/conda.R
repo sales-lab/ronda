@@ -131,7 +131,12 @@ create_recipe <- function(pkg, tree, build_num, custom, dir) {
   writeLines(content, fs::path_join(c(dir, "recipe.yaml")))
 
   if (info$NeedsCompilation == "yes") {
-    writeLines(build_config, fs::path_join(c(dir, "variants.yaml")))
+    build_microarchs <-
+      microarch_detect() |>
+      seq(from = 1, to = _) |>
+      jsonlite::toJSON()
+    variants <- glue::glue(build_config)
+    writeLines(variants, fs::path_join(c(dir, "variants.yaml")))
   }
 
   content
@@ -268,8 +273,7 @@ microarch_level:
   - if: not(unix and x86_64)
     then:
       - 0
-    else:
-      - 1
+    else: {build_microarchs}
 "
 
 run_build <- function(dir, recipe, log_dir) {

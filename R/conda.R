@@ -37,12 +37,19 @@ conda_clear_build_dir <- function() {
 #'
 #' @param pkg Package name.
 #' @param tree A `pkg_tree` object.
+#' @param build_num An integer representing the build version of the package.
 #' @param dry_run Enable dry run when `TRUE`.
 #' @param log_dir Write logs to specified directory, defaulting to current
 #'                directory.
 #'
 #' @export
-conda_build <- function(pkg, tree, dry_run = FALSE, log_dir = getwd()) {
+conda_build <- function(
+  pkg,
+  tree,
+  build_num = 0,
+  dry_run = FALSE,
+  log_dir = getwd()
+) {
   check_string(pkg)
   check_class(tree, "pkg_tree")
   check_bool(dry_run)
@@ -56,7 +63,7 @@ conda_build <- function(pkg, tree, dry_run = FALSE, log_dir = getwd()) {
   
   build_dir <- create_build_dir(pkg, artifact_dir, dry_run)
   custom <- lookup_custom(pkg)
-  recipe <- create_recipe(pkg, tree, custom, build_dir)
+  recipe <- create_recipe(pkg, tree, build_num, custom, build_dir)
 
   if (dry_run) {
     return(build_dir)
@@ -74,7 +81,7 @@ create_build_dir <- function(pkg, artifact_dir, dry_run) {
   dir
 }
 
-create_recipe <- function(pkg, tree, custom, dir) {
+create_recipe <- function(pkg, tree, build_num, custom, dir) {
   qname <- qualified_names(pkg, tree)
 
   info <- pkg_info(tree, pkg, download = TRUE)
@@ -213,10 +220,10 @@ source:
   md5: '{md5}'
 
 context:
-  build: 0
+  build: {build_num}
 
 build:
-  number: ${{{{ build|int + (microarch_level|int) * 100 }}}}
+  number: ${{{{ build|int + microarch_level|int }}}}
 {noarch}
 {script}
 

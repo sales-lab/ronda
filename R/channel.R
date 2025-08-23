@@ -40,10 +40,14 @@ conda_channel <- function(path) {
     return(empty_channel())
   }
 
+  ext_version <- paste(pkgs$version, pkgs$build, sep = ".")
   pkgs$version <- package_version(pkgs$version)
-  pkgs <- dplyr::slice_max(pkgs, version, by = "name", with_ties = FALSE)
+  pkgs$ext_version <- package_version(ext_version)
+  pkgs <- dplyr::slice_max(pkgs, ext_version, n = 1L,
+                           by = "name", with_ties = FALSE)
   rownames(pkgs) <- pkgs$name
   pkgs$name <- NULL
+  pkgs$ext_version <- NULL
 
   structure(list(pkgs = pkgs), class = "conda_channel")
 }
@@ -90,4 +94,19 @@ empty_channel <- function() {
 channel_packages <- function(channel) {
   check_class(channel, "conda_channel")
   channel$pkgs
+}
+
+#' Lookup the build number of a package.
+#'
+#' @param channel A `conda_channel` object.
+#' @param pkg The package name.
+#' @return The build version as an integer if the package exists, or `NA`.
+#'
+#' @export
+conda_build_num <- function(pkg, channel) {
+  check_string(pkg)
+  check_class(channel, "conda_channel")
+
+  pkgs <- channel$pkgs
+  if (nrow(pkgs) == 0) NA_integer_ else channel$pkgs[pkg, "build"]
 }

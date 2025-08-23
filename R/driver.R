@@ -24,9 +24,10 @@ ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
   increase_rlimit_nofile()
 
   tree <- if (inherits(pkgs, "pkg_tree")) pkgs else subset(all_packages(), pkgs)
+  ch <- local_channel()
   bs <-
     build_schedule(tree) |>
-    mark_pkgs_up_to_date(match_local_packages(tree, local_channel()))
+    mark_pkgs_up_to_date(match_local_packages(tree, ch))
 
   built_pkgs <- character(0)
   failed_pkgs <- character(0)
@@ -46,7 +47,10 @@ ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
           msg_done = paste0("Built ", p),
           msg_failed = paste0("Failed ", p)
         )
-        conda_build(p, tree, log_dir = log_dir)
+
+        build_num <- conda_build_num(p, ch)
+        build_num <- if (is.na(build_num)) 0 else build_num + 1
+        conda_build(p, tree, build_num = build_num, log_dir = log_dir)
       }
 
       res <- try(step(), silent = TRUE)

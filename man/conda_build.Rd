@@ -4,12 +4,14 @@
 \alias{conda_build}
 \title{Build an R package with Conda.}
 \usage{
-conda_build(pkg, tree, dry_run = FALSE, log_dir = getwd())
+conda_build(pkg, tree, build_num = 0, dry_run = FALSE, log_dir = getwd())
 }
 \arguments{
 \item{pkg}{Package name.}
 
 \item{tree}{A \code{pkg_tree} object.}
+
+\item{build_num}{An integer representing the build version of the package.}
 
 \item{dry_run}{Enable dry run when \code{TRUE}.}
 

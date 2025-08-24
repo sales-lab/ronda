@@ -8,19 +8,28 @@
 #'
 #' @export
 microarch_detect <- function() {
-  if (!exists("loaded", envir = the_python)) {
-    path <- Sys.which("python")
-    reticulate::use_python(path)
-    assign("loaded", TRUE, envir = the_python)
+  value <- get0("value", envir = the_microarch)
+  if (is.null(value)) {
+    value <- callr::r(query_microarch)
+    if (is.null(value)) {
+      cli_abort(c(
+        "x" = "Failed to detect the microarchitectural level of the host.",
+        "i" = "Have you installed {.pkg conda-build}?"
+      ))
+    }
+
+    assign("value", value, envir = the_microarch)
   }
-  
-  reticulate::py_run_string(query_script)  
-  reticulate::py$level
+
+  value
 }
 
-the_python <- new.env(parent = emptyenv())
+query_microarch <- function() {
+  res <- try({
+    path <- Sys.which("python")
+    reticulate::use_python(path)
 
-query_script <- "
+    reticulate::py_run_string("
 import archspec.cpu
 
 name_mapping = {
@@ -48,4 +57,10 @@ levels = {arch[0]: level for arch, level in sorted(
     levels.items(), key=lambda kv: kv[1])}
 
 level = levels[archspec.cpu.host().name]
-"
+    ")
+  })
+
+  if (inherits(res, "try-error")) NULL else reticulate::py$level
+}
+
+the_microarch <- new.env(parent = emptyenv())

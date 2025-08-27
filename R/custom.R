@@ -19,9 +19,9 @@ lookup_custom <- function(pkg) {
 
   sysdeps <- lookup_sysdeps(pkg)
 
-  list(compiler = custom_compiler[[pkg]],
-       build_deps = c(custom_build_deps[[pkg]], sysdeps),
-       run_deps = c(custom_run_deps[[pkg]], sysdeps),
+  list(compiler = apply_constraints(custom_compiler[[pkg]]),
+       build_deps = apply_constraints(c(custom_build_deps[[pkg]], sysdeps)),
+       run_deps = apply_constraints(c(custom_run_deps[[pkg]], sysdeps)),
        script = custom_script(pkg))
 }
 
@@ -37,6 +37,17 @@ custom_build_deps <- list(
 custom_run_deps <- list(
   torch = "cuda",
   xml2 = "liblzma"
+)
+
+apply_constraints <- function(pkgs) {
+  purrr::map_chr(pkgs, \(pkg) {
+    cstr <- custom_constraints[[pkg]]
+    if (is.null(cstr)) pkg else paste(pkg, cstr, sep = " ")
+  })
+}
+
+custom_constraints <- list(
+  libxml2 = "<2.14"
 )
 
 custom_script <- function(pkg) {

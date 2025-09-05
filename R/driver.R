@@ -23,6 +23,10 @@ ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
 
   increase_rlimit_nofile()
 
+  if (clear_build_dir) {
+    withr::defer(conda_clear_build_dir())
+  }
+
   tree <- if (inherits(pkgs, "pkg_tree")) pkgs else subset(all_packages(), pkgs)
   ch <- local_channel()
   bs <-
@@ -53,11 +57,17 @@ ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
         conda_build(p, tree, build_num = build_num, log_dir = log_dir)
       }
 
-      res <- try(step(), silent = TRUE)
-      if (inherits(res, "try-error")) {
-        fail <- c(fail, p)
-      } else {
+      res <- tryCatch({
+          step()
+          TRUE
+        },
+        error = \(ex) FALSE,
+        interrupt = \(ex) cli_abort("Build interrupted by user.")
+      )
+      if (res) {
         succ <- c(succ, p)
+      } else {
+        fail <- c(fail, p)
       }
     }
 
@@ -67,10 +77,6 @@ ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
       bs |>
       mark_failed_pkgs(fail) |>
       mark_built_pkgs(succ)
-  }
-
-  if (clear_build_dir) {
-    conda_clear_build_dir()
   }
 
   fail_count <- length(failed_pkgs)

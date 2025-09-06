@@ -21,6 +21,7 @@ lookup_sysdeps <- function(pkg) {
 }
 
 sysreqs_conv <- list(
+  fftw3 = "fftw",
   gnumake = "make",
   java = "openjdk",
   libicu = "icu",

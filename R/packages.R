@@ -157,6 +157,35 @@ mtfrm.pkg_tree <- function(x) {
   rownames(x$pkgs)
 }
 
+#' Remove some packages from a package tree, preserving dependencies.
+#'
+#' This function will remove from the tree the required packages,
+#' unless this breaks the dependency contraints. As a consequence,
+#' the packages actually removed might just be a subset of those
+#' required by the caller.
+#' @param x A `pkg_tree` object.
+#' @param y A vector of package names to be removed.
+#' @param ... Other arguments, ignored.
+#' @return Another `pkg_tree`.
+#'
+#' @export
+setdiff.pkg_tree <- function(x, y, ...) {
+  check_class(x, "pkg_tree")
+  check_type(y, "character")
+  check_contents(y, Negate(is.na))
+
+  if (length(y) == 0) {
+    return(x)
+  }
+
+  req <- setdiff(names(x), y)
+  subset(x, req)
+}
+
+#' @importFrom generics setdiff
+#' @export
+generics::setdiff
+
 #' Retrieve the dependencies of a package.
 #'
 #' @param tree A `pkg_tree` object.

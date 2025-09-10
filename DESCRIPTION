@@ -19,6 +19,7 @@ Imports:
     dplyr,
     erify,
     fs,
+    generics,
     glue,
     jsonlite,
     pkgdepends,

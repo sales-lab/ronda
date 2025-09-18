@@ -37,11 +37,13 @@ You will also need to install Miniconda. We recommend
 using the conda-forge installer, available at
 <https://conda-forge.org/download/>.
 
-Once Miniconda is installed, activate the
-`base` environment and install `conda-build`. The
-[official documentation](https://docs.conda.io/projects/conda-build/en/latest/install-conda-build.html#way-of-working)
-suggests installing it directly in the base environment for simplicity
-and consistency.
+After installing Miniconda, create and activate a new environment with the
+necessary build tools.
+
+```bash
+conda create -n ronda conda-build rattler-build rattler-index
+conda activate ronda
+```
 
 
 ## Usage

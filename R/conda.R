@@ -39,6 +39,7 @@ conda_clear_build_dir <- function() {
 #' @param tree A `pkg_tree` object.
 #' @param build_num An integer representing the build version of the package.
 #' @param dry_run Enable dry run when `TRUE`.
+#' @param variants Enable multi‑arch variant generation when `TRUE`.
 #' @param log_dir Write logs to specified directory, defaulting to current
 #'                directory.
 #'
@@ -48,11 +49,13 @@ conda_build <- function(
   tree,
   build_num = 0,
   dry_run = FALSE,
+  variants = TRUE,
   log_dir = getwd()
 ) {
   check_string(pkg)
   check_class(tree, "pkg_tree")
   check_bool(dry_run)
+  check_bool(variants)
   check_string(log_dir)
 
   artifact_dir <- conda_artifact_dir()
@@ -63,7 +66,7 @@ conda_build <- function(
   
   build_dir <- create_build_dir(pkg, artifact_dir, dry_run)
   custom <- lookup_custom(pkg)
-  recipe <- create_recipe(pkg, tree, build_num, custom, build_dir)
+  recipe <- create_recipe(pkg, tree, build_num, custom, variants, build_dir)
 
   if (dry_run) {
     return(build_dir)
@@ -81,7 +84,7 @@ create_build_dir <- function(pkg, artifact_dir, dry_run) {
   dir
 }
 
-create_recipe <- function(pkg, tree, build_num, custom, dir) {
+create_recipe <- function(pkg, tree, build_num, custom, variants, dir) {
   qname <- qualified_names(pkg, tree)
 
   info <- pkg_info(tree, pkg, download = TRUE)
@@ -130,13 +133,13 @@ create_recipe <- function(pkg, tree, build_num, custom, dir) {
   content <- glue::glue(recipe_template)
   writeLines(content, fs::path_join(c(dir, "recipe.yaml")))
 
-  if (info$NeedsCompilation == "yes") {
+  if (variants && info$NeedsCompilation == "yes") {
     build_microarchs <-
       microarch_detect() |>
       seq(from = 1, to = _) |>
       jsonlite::toJSON()
-    variants <- glue::glue(build_config)
-    writeLines(variants, fs::path_join(c(dir, "variants.yaml")))
+    yaml <- glue::glue(build_config)
+    writeLines(yaml, fs::path_join(c(dir, "variants.yaml")))
   }
 
   content

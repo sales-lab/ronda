@@ -4,7 +4,14 @@
 \alias{conda_build}
 \title{Build an R package with Conda.}
 \usage{
-conda_build(pkg, tree, build_num = 0, dry_run = FALSE, log_dir = getwd())
+conda_build(
+  pkg,
+  tree,
+  build_num = 0,
+  dry_run = FALSE,
+  variants = TRUE,
+  log_dir = getwd()
+)
 }
 \arguments{
 \item{pkg}{Package name.}
@@ -14,6 +21,8 @@ conda_build(pkg, tree, build_num = 0, dry_run = FALSE, log_dir = getwd())
 \item{build_num}{An integer representing the build version of the package.}
 
 \item{dry_run}{Enable dry run when \code{TRUE}.}
+
+\item{variants}{Enable multi‑arch variant generation when \code{TRUE}.}
 
 \item{log_dir}{Write logs to specified directory, defaulting to current
 directory.}

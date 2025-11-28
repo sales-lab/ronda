@@ -11,15 +11,18 @@
 #'                working directory.
 #' @param clear_build_dir If TRUE, the package build directory is cleared before
 #'                        building.
+#' @param variants Enable multi‑arch variant generation when `TRUE`.
 #'
 #' @export
-ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
+ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE, variants = TRUE) {
   if (!inherits(pkgs, "pkg_tree")) {
     check_type(pkgs, "character")
     check_length(pkgs, c(0, NA), interval = TRUE)
     check_contents(pkgs, Negate(is.na))
   }
   check_string(log_dir)
+  check_bool(clear_build_dir)
+  check_bool(variants)
 
   increase_rlimit_nofile()
 
@@ -54,7 +57,7 @@ ronda_build <- function(pkgs, log_dir = getwd(), clear_build_dir = TRUE) {
 
         build_num <- conda_build_num(p, ch)
         build_num <- if (is.na(build_num)) 0 else build_num + 1
-        conda_build(p, tree, build_num = build_num, log_dir = log_dir)
+        conda_build(p, tree, build_num = build_num, log_dir = log_dir, variants = variants)
       }
 
       res <- tryCatch({

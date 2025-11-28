@@ -4,7 +4,7 @@
 \alias{ronda_build}
 \title{Build a set of packages, including all of their dependencies.}
 \usage{
-ronda_build(pkgs, log_dir = getwd(), clear_build_dir = TRUE)
+ronda_build(pkgs, log_dir = getwd(), clear_build_dir = TRUE, variants = TRUE)
 }
 \arguments{
 \item{pkgs}{A vector of package names, or a \code{pkg_tree} object.}
@@ -14,6 +14,8 @@ working directory.}
 
 \item{clear_build_dir}{If TRUE, the package build directory is cleared before
 building.}
+
+\item{variants}{Enable multi‑arch variant generation when \code{TRUE}.}
 }
 \description{
 Packages already available in the local Conda channel are skipped.
